@@ -8,101 +8,121 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;1,400&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
     <style>
-        :root { --accent: #fbbf24; }
+        :root { --accent: #fbbf24; --grace: #fcd34d; --derrick: #60a5fa; }
         body { 
             font-family: 'Inter', sans-serif; 
             background: radial-gradient(ellipse at bottom, #1B2735 0%, #090A0F 100%);
             background-attachment: fixed;
-            color: #fff;
-            min-height: 100vh;
-            overflow-x: hidden;
+            color: #fff; min-height: 100vh; overflow-x: hidden;
         }
 
+        /* 🌠 Animated Shooting Stars */
         .stars-container { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: -1; pointer-events: none; }
         .star { position: absolute; background: white; border-radius: 50%; opacity: 0.5; animation: twinkle var(--duration) infinite; }
         @keyframes twinkle { 0%, 100% { opacity: 0.3; transform: scale(1); } 50% { opacity: 1; transform: scale(1.2); } }
+        
+        .shooting-star {
+            position: absolute; top: 0; left: 50%; width: 2px; height: 2px;
+            background: linear-gradient(90deg, #fff, transparent);
+            animation: shoot 3s linear infinite; opacity: 0;
+        }
+        @keyframes shoot {
+            0% { transform: translateX(0) translateY(0) rotate(-45deg) scale(0); opacity: 0; }
+            10% { opacity: 1; transform: scale(1); }
+            100% { transform: translateX(-500px) translateY(500px) rotate(-45deg) scale(1); opacity: 0; }
+        }
 
+        /* 🏰 Masonry Layout */
         .masonry { column-count: 1; column-gap: 1.5rem; }
         @media (min-width: 640px) { .masonry { column-count: 2; } }
         @media (min-width: 1024px) { .masonry { column-count: 3; } }
 
         .post-card {
-            break-inside: avoid;
-            margin-bottom: 1.5rem;
-            background: rgba(255, 255, 255, 0.05);
-            backdrop-filter: blur(12px);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            border-radius: 1.5rem;
-            transition: all 0.3s ease;
+            break-inside: avoid; margin-bottom: 1.5rem;
+            background: rgba(255, 255, 255, 0.03); backdrop-filter: blur(15px);
+            border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 2rem;
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            animation: slideUp 0.6s ease-out backwards;
         }
-        .post-card:hover { transform: translateY(-5px); border-color: var(--accent); box-shadow: 0 0 20px rgba(251, 191, 36, 0.1); }
+        .post-card:hover { transform: translateY(-8px) scale(1.01); border-color: rgba(251, 191, 36, 0.3); box-shadow: 0 20px 40px rgba(0,0,0,0.4); }
 
+        @keyframes slideUp { from { opacity: 0; transform: translateY(30px); } to { opacity: 1; transform: translateY(0); } }
+
+        /* ✨ Interactive Elements */
         .fab {
-            position: fixed; bottom: 2rem; right: 2rem; width: 64px; height: 64px;
+            position: fixed; bottom: 2rem; right: 2rem; width: 68px; height: 68px;
             background: var(--accent); color: #000; border-radius: 50%;
             display: flex; align-items: center; justify-content: center;
-            box-shadow: 0 0 20px rgba(251, 191, 36, 0.4); cursor: pointer; z-index: 50;
+            box-shadow: 0 0 30px rgba(251, 191, 36, 0.5); cursor: pointer; z-index: 50;
+            transition: all 0.3s ease;
         }
+        .fab:hover { transform: scale(1.1) rotate(180deg); box-shadow: 0 0 50px rgba(251, 191, 36, 0.8); }
         
-        .name-grace { color: #fcd34d; text-shadow: 0 0 8px rgba(252, 211, 77, 0.4); }
-        .name-derrick { color: #60a5fa; text-shadow: 0 0 8px rgba(96, 165, 250, 0.4); }
+        .name-grace { color: var(--grace); text-shadow: 0 0 10px rgba(252, 211, 77, 0.3); }
+        .name-derrick { color: var(--derrick); text-shadow: 0 0 10px rgba(96, 165, 250, 0.3); }
+
+        .reply-bubble { transform-origin: left; animation: bubbleIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
+        @keyframes bubbleIn { from { opacity: 0; transform: scale(0.8); } to { opacity: 1; transform: scale(1); } }
 
         #auth-view, #board-view, #modal-overlay { display: none; }
-        ::-webkit-scrollbar { width: 4px; }
-        ::-webkit-scrollbar-thumb { background: var(--accent); border-radius: 10px; }
-        .fade-in { animation: fadeIn 0.5s ease-out forwards; }
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        input, textarea { background: rgba(255,255,255,0.05) !important; color: white !important; }
     </style>
 </head>
 <body class="p-6">
     <div class="stars-container" id="stars"></div>
 
     <!-- Login -->
-    <div id="auth-view" class="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 backdrop-blur-xl">
-        <div class="max-w-xs w-full text-center fade-in">
-            <div class="text-6xl mb-6">✨</div>
-            <h1 class="text-3xl font-bold mb-8 italic text-amber-200">Star Board</h1>
+    <div id="auth-view" class="fixed inset-0 z-[100] flex items-center justify-center bg-[#090A0F]/90 backdrop-blur-2xl">
+        <div class="max-w-xs w-full text-center slideUp">
+            <div class="text-7xl mb-6 animate-pulse">✨</div>
+            <h1 class="text-4xl font-bold mb-10 italic text-amber-200 tracking-tight">Star Board</h1>
             <input type="password" id="password" placeholder="Passcode" 
                 onkeydown="if(event.key === 'Enter') handleLogin()"
-                class="w-full p-4 rounded-2xl bg-white/10 border border-white/20 text-center outline-none focus:border-amber-400 mb-4 transition-all">
-            <button onclick="handleLogin()" class="w-full bg-amber-400 text-black p-4 rounded-2xl font-bold hover:bg-amber-300 transition-all">Illuminate</button>
+                class="w-full p-5 rounded-3xl border border-white/10 text-center outline-none focus:border-amber-400 mb-4 transition-all">
+            <button onclick="handleLogin()" class="w-full bg-amber-400 text-black p-5 rounded-3xl font-black uppercase tracking-widest hover:bg-amber-300 transition-all">Illuminate</button>
         </div>
     </div>
 
     <!-- Main Board -->
     <div id="board-view" class="max-w-6xl mx-auto">
-        <header class="mb-12 flex justify-between items-end">
-            <div>
-                <h1 class="text-4xl font-bold text-amber-200 flex items-center gap-3">
-                    Corkboard <span class="text-2xl">☄️</span>
+        <header class="mb-16 flex justify-between items-end">
+            <div class="slideUp">
+                <h1 class="text-5xl font-bold text-amber-200 flex items-center gap-4">
+                    Corkboard <span class="text-3xl animate-bounce">☄️</span>
                 </h1>
-                <p id="user-display" class="text-amber-100/40 text-sm mt-1 uppercase tracking-widest font-medium"></p>
+                <p id="user-display" class="text-amber-100/30 text-xs mt-2 uppercase tracking-[0.3em] font-bold"></p>
             </div>
-            <button onclick="handleLogout()" class="text-[10px] text-white/30 hover:text-white uppercase tracking-widest border border-white/10 px-3 py-1 rounded-full">Sleep</button>
+            <button onclick="handleLogout()" class="text-[10px] text-white/20 hover:text-amber-400 uppercase tracking-widest border border-white/5 px-4 py-2 rounded-full transition-all">Sleep</button>
         </header>
 
         <div id="posts-container" class="masonry"></div>
 
         <div class="fab" onclick="showModal()">
-            <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8" viewBox="0 0 20 20" fill="currentColor">
-                <path fill-rule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clip-rule="evenodd" />
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-9 w-9" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4" />
             </svg>
         </div>
     </div>
 
     <!-- Modal -->
-    <div id="modal-overlay" class="fixed inset-0 z-[60] flex items-center justify-center p-6 bg-black/40 backdrop-blur-md">
+    <div id="modal-overlay" class="fixed inset-0 z-[60] flex items-center justify-center p-6 bg-black/60 backdrop-blur-md">
         <div class="absolute inset-0" onclick="hideModal()"></div>
-        <div class="bg-slate-900 w-full max-w-lg rounded-[2rem] p-8 relative border border-white/10 shadow-2xl fade-in">
-            <textarea id="post-content" rows="4" placeholder="Something for the sky..." 
+        <div class="bg-[#161B22] w-full max-w-xl rounded-[3rem] p-10 relative border border-white/10 shadow-2xl transition-all">
+            <textarea id="post-content" rows="4" placeholder="Share a link, a video, or a thought..." 
                 onkeydown="if(event.key === 'Enter' && !event.shiftKey) { event.preventDefault(); createPost(); }"
-                class="w-full bg-transparent text-xl text-white outline-none resize-none mb-6 placeholder-white/20"></textarea>
-            <div class="flex items-center justify-between border-t border-white/5 pt-6">
-                <label class="cursor-pointer text-amber-400/60 hover:text-amber-400 transition-colors">
+                class="w-full bg-transparent text-2xl text-white outline-none resize-none mb-8 placeholder-white/10"></textarea>
+            
+            <div class="flex items-center justify-between border-t border-white/5 pt-8">
+                <label class="group cursor-pointer flex items-center gap-3">
                     <input type="file" id="post-image" accept="image/*" class="hidden">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-7 w-7" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
+                    <div class="bg-white/5 p-4 rounded-2xl group-hover:bg-amber-400 group-hover:text-black transition-all">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                        </svg>
+                    </div>
+                    <span class="text-xs font-bold text-white/40 group-hover:text-white transition-colors">Add Image</span>
                 </label>
-                <button onclick="createPost()" id="post-btn" class="bg-amber-400 text-black px-10 py-3 rounded-full font-bold shadow-lg">Cast Star</button>
+                <button onclick="createPost()" id="post-btn" class="bg-amber-400 text-black px-12 py-4 rounded-2xl font-black uppercase tracking-wider shadow-xl active:scale-95 transition-all">Cast Star</button>
             </div>
         </div>
     </div>
@@ -112,37 +132,33 @@
         const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJxaXlmZXd1ZW1wcWZ5bWVhcnJ3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njg0Mzg3MzksImV4cCI6MjA4NDAxNDczOX0.He0wDj2TIfOUb7pMCOO5FIIJC1zzmnuponKhh-1rtcM';
         const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
+        // 🌌 Starfield Generator
         const starsContainer = document.getElementById('stars');
         for (let i = 0; i < 150; i++) {
             const star = document.createElement('div');
             star.className = 'star';
             const size = (Math.random() * 2 + 1) + 'px';
-            star.style.width = size; star.style.height = size;
-            star.style.top = Math.random() * 100 + '%';
-            star.style.left = Math.random() * 100 + '%';
-            star.style.setProperty('--duration', (Math.random() * 3 + 2) + 's');
+            star.style.cssText = `width:${size};height:${size};top:${Math.random()*100}%;left:${Math.random()*100}%;--duration:${Math.random()*3+2}s`;
             starsContainer.appendChild(star);
         }
+        setInterval(() => {
+            const s = document.createElement('div'); s.className = 'shooting-star';
+            s.style.left = Math.random() * 100 + '%'; s.style.top = Math.random() * 50 + '%';
+            starsContainer.appendChild(s); setTimeout(() => s.remove(), 3000);
+        }, 4000);
 
         function handleLogin() {
             const pass = document.getElementById('password').value;
-            let name = "";
-            if (pass === 'star2026') name = "Grace";
-            else if (pass === 'Rich6696') name = "Derrick";
-            
-            if (name) {
-                localStorage.setItem('board_session', 'active');
-                localStorage.setItem('board_user', name);
-                checkAuth();
-            } else alert('The sky remains dark...');
+            const user = pass === 'star2026' ? "Grace" : (pass === 'Rich6696' ? "Derrick" : null);
+            if (user) { localStorage.setItem('board_session', 'active'); localStorage.setItem('board_user', user); checkAuth(); }
+            else alert('The sky remains dark...');
         }
 
         function checkAuth() {
             const user = localStorage.getItem('board_user');
             if (localStorage.getItem('board_session') === 'active' && user) {
-                document.getElementById('user-display').innerText = `Welcome, ${user}`;
-                showView('board-view'); 
-                init();
+                document.getElementById('user-display').innerText = `Navigator: ${user}`;
+                showView('board-view'); init();
             } else showView('auth-view');
         }
 
@@ -156,43 +172,63 @@
             sb.channel('all').on('postgres_changes', { event: '*', table: 'posts' }, loadPosts).on('postgres_changes', { event: '*', table: 'replies' }, loadPosts).subscribe();
         }
 
+        function detectType(text) {
+            const ytRegex = /(?:youtube\.com\/(?:[^\/]+\/.+\/|(?:v|e(?:mbed)?)\/|.*[?&]v=)|youtu\.be\/)([^"&?\/\s]{11})/i;
+            const urlRegex = /(https?:\/\/[^\s]+)/g;
+            const ytMatch = text.match(ytRegex);
+            if (ytMatch) return { type: 'youtube', id: ytMatch[1] };
+            const urlMatch = text.match(urlRegex);
+            if (urlMatch) return { type: 'link', url: urlMatch[0] };
+            return { type: 'text' };
+        }
+
         async function loadPosts() {
             const { data: posts } = await sb.from('posts').select('*, replies(*)').order('created_at', { ascending: false });
             if (!posts) return;
             
             document.getElementById('posts-container').innerHTML = posts.map(p => {
                 const authorClass = p.author === 'Grace' ? 'name-grace' : (p.author === 'Derrick' ? 'name-derrick' : '');
-                const react = p.reactions || {};
+                const media = detectType(p.content);
+                let contentHtml = `<div class="text-white text-xl mb-6 whitespace-pre-wrap leading-relaxed">${p.content}</div>`;
+                
+                if (media.type === 'youtube') {
+                    contentHtml += `<div class="rounded-2xl overflow-hidden mb-6 aspect-video shadow-2xl border border-white/10"><iframe class="w-full h-full" src="https://www.youtube.com/embed/${media.id}" frameborder="0" allowfullscreen></iframe></div>`;
+                } else if (media.type === 'link') {
+                    contentHtml += `<a href="${media.url}" target="_blank" class="block p-4 rounded-2xl bg-white/5 border border-white/10 mb-6 hover:bg-white/10 transition-all font-bold text-amber-200 truncate">🔗 ${media.url}</a>`;
+                }
+
                 return `
-                <div class="post-card p-6 fade-in">
-                    <div class="flex justify-between items-start mb-4">
-                        <span class="text-xs font-bold uppercase tracking-widest ${authorClass}">${p.author || 'Member'}</span>
-                        <span class="text-[10px] text-white/20 font-bold">${new Date(p.created_at).toLocaleDateString()}</span>
+                <div class="post-card p-8" id="post-${p.id}">
+                    <div class="flex justify-between items-start mb-6">
+                        <span class="text-xs font-black uppercase tracking-[0.2em] ${authorClass}">${p.author || 'Member'}</span>
+                        <span class="text-[9px] text-white/20 font-bold uppercase tracking-widest">${new Date(p.created_at).toLocaleDateString()}</span>
                     </div>
-                    <div class="text-white text-lg mb-6 whitespace-pre-wrap leading-relaxed">${p.content}</div>
-                    ${p.image_url ? `<img src="${p.image_url}" class="rounded-2xl mb-6 w-full border border-white/5">` : ''}
+                    ${contentHtml}
+                    ${p.image_url ? `<img src="${p.image_url}" class="rounded-3xl mb-8 w-full border border-white/5 shadow-2xl hover:scale-[1.02] transition-transform">` : ''}
                     
-                    <div class="flex flex-wrap gap-2 mb-6">
+                    <div class="flex flex-wrap gap-2 mb-8">
                         ${['❤️', '✨', '🌙', '🫂'].map(emoji => `
-                            <button onclick="reactToPost('${p.id}', '${emoji}')" class="bg-white/5 hover:bg-white/10 px-4 py-1.5 rounded-full text-sm">
-                                ${emoji} <span class="text-[10px] ml-1 text-amber-200/60">${react[emoji] || 0}</span>
+                            <button onclick="reactToPost('${p.id}', '${emoji}')" class="bg-white/5 hover:bg-amber-400/20 hover:text-amber-200 px-5 py-2 rounded-full text-sm transition-all active:scale-90">
+                                ${emoji} <span class="text-[10px] ml-2 font-bold">${(p.reactions || {})[emoji] || 0}</span>
                             </button>
                         `).join('')}
                     </div>
 
-                    <div class="space-y-3 border-t border-white/5 pt-6">
-                        <div class="space-y-2">
+                    <div class="space-y-4 border-t border-white/5 pt-8">
+                        <div id="replies-${p.id}" class="space-y-3">
                             ${(p.replies || []).map(r => `
-                                <div class="text-sm bg-white/5 p-3 rounded-2xl border border-white/5">
-                                    <span class="text-[9px] block uppercase font-bold opacity-40 mb-1 ${r.author === 'Grace' ? 'name-grace' : (r.author === 'Derrick' ? 'name-derrick' : '')}">${r.author || 'Member'}</span>
+                                <div class="reply-bubble text-sm bg-white/5 p-4 rounded-2xl border border-white/5">
+                                    <span class="text-[9px] block uppercase font-black opacity-30 mb-2 ${r.author === 'Grace' ? 'name-grace' : (r.author === 'Derrick' ? 'name-derrick' : '')}">${r.author || 'Member'}</span>
                                     ${r.content}
                                 </div>
                             `).join('')}
                         </div>
-                        <div class="flex gap-2 mt-4">
-                            <input id="reply-${p.id}" type="text" placeholder="Add a reply..." onkeydown="if(event.key === 'Enter') addReply('${p.id}')"
-                                class="bg-white/5 rounded-full px-4 py-2 text-xs flex-grow outline-none border border-white/5 focus:border-amber-400">
-                            <button onclick="addReply('${p.id}')" class="text-[10px] text-amber-400 uppercase font-bold px-2">Reply</button>
+                        <div class="flex gap-3 mt-6">
+                            <input id="reply-in-${p.id}" type="text" placeholder="Whisper back..." onkeydown="if(event.key === 'Enter') addReply('${p.id}')"
+                                class="bg-white/5 rounded-2xl px-5 py-3 text-xs flex-grow outline-none border border-white/5 focus:border-amber-400 transition-all">
+                            <button onclick="addReply('${p.id}')" class="bg-amber-400 text-black rounded-2xl px-5 flex items-center justify-center hover:bg-amber-300 transition-all">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7" /></svg>
+                            </button>
                         </div>
                     </div>
                 </div>`;
@@ -200,38 +236,36 @@
         }
 
         async function createPost() {
-            const content = document.getElementById('post-content').value;
+            const bt = document.getElementById('post-btn'); const ct = document.getElementById('post-content');
             const file = document.getElementById('post-image').files[0];
-            const author = localStorage.getItem('board_user');
-            if (!content && !file) return;
-
+            if (!ct.value && !file) return;
+            bt.disabled = true; bt.innerText = "Aligning...";
             let image_url = null;
             if (file) {
                 const path = `posts/${Date.now()}-${file.name}`;
                 const { data } = await sb.storage.from('post-images').upload(path, file);
                 if (data) image_url = sb.storage.from('post-images').getPublicUrl(path).data.publicUrl;
             }
-
-            await sb.from('posts').insert([{ content, image_url, author }]);
-            document.getElementById('post-content').value = '';
-            hideModal();
-            loadPosts();
+            await sb.from('posts').insert([{ content: ct.value, image_url, author: localStorage.getItem('board_user') }]);
+            ct.value = ''; hideModal(); bt.disabled = false; bt.innerText = "Cast Star";
         }
 
         async function addReply(postId) {
-            const input = document.getElementById(`reply-${postId}`);
+            const inp = document.getElementById(`reply-in-${postId}`);
+            const text = inp.value.trim(); if (!text) return;
             const author = localStorage.getItem('board_user');
-            if (!input.value.trim()) return;
-            await sb.from('replies').insert([{ post_id: postId, content: input.value, author }]);
-            input.value = '';
-            loadPosts();
+            inp.value = ''; // Instant clear
+            // Instant UI feedback (Pseudo-update)
+            const repCont = document.getElementById(`replies-${postId}`);
+            repCont.innerHTML += `<div class="reply-bubble text-sm bg-white/10 p-4 rounded-2xl border border-amber-400/20">
+                <span class="text-[9px] block uppercase font-black ${author === 'Grace' ? 'name-grace' : 'name-derrick'}">${author}</span>${text}</div>`;
+            await sb.from('replies').insert([{ post_id: postId, content: text, author }]);
         }
 
         async function reactToPost(id, emoji) {
-            const { data: post } = await sb.from('posts').select('reactions').eq('id', id).single();
-            const reacts = { ...(post.reactions || {}) };
-            reacts[emoji] = (reacts[emoji] || 0) + 1;
-            await sb.from('posts').update({ reactions: reacts }).eq('id', id);
+            const { data } = await sb.from('posts').select('reactions').eq('id', id).single();
+            const r = { ...(data.reactions || {}) }; r[emoji] = (r[emoji] || 0) + 1;
+            await sb.from('posts').update({ reactions: r }).eq('id', id);
         }
 
         checkAuth();
