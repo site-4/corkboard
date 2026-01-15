@@ -19,7 +19,7 @@
         }
 
         /* Twinkling Stars Background */
-        .stars-container { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: -1; }
+        .stars-container { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: -1; pointer-events: none; }
         .star { position: absolute; background: white; border-radius: 50%; opacity: 0.5; animation: twinkle var(--duration) infinite; }
         @keyframes twinkle { 0%, 100% { opacity: 0.3; transform: scale(1); } 50% { opacity: 1; transform: scale(1.2); } }
 
@@ -37,19 +37,23 @@
             border-radius: 1.5rem;
             transition: all 0.3s ease;
         }
-        .post-card:hover { transform: translateY(-5px); border-color: var(--accent); }
+        .post-card:hover { transform: translateY(-5px); border-color: var(--accent); box-shadow: 0 0 20px rgba(251, 191, 36, 0.1); }
 
         .fab {
             position: fixed; bottom: 2rem; right: 2rem; width: 64px; height: 64px;
             background: var(--accent); color: #000; border-radius: 50%;
             display: flex; align-items: center; justify-content: center;
             box-shadow: 0 0 20px rgba(251, 191, 36, 0.4); cursor: pointer; z-index: 50;
+            transition: transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
         }
+        .fab:hover { transform: scale(1.1) rotate(90deg); }
 
-        .reply-input-area { background: rgba(0,0,0,0.2); border-radius: 1rem; margin-top: 1rem; }
         #auth-view, #board-view, #modal-overlay { display: none; }
         ::-webkit-scrollbar { width: 4px; }
         ::-webkit-scrollbar-thumb { background: var(--accent); border-radius: 10px; }
+        
+        .fade-in { animation: fadeIn 0.5s ease-out forwards; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
     </style>
 </head>
 <body class="p-6">
@@ -57,10 +61,11 @@
 
     <!-- Login -->
     <div id="auth-view" class="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 backdrop-blur-xl">
-        <div class="max-w-xs w-full text-center slide-up">
+        <div class="max-w-xs w-full text-center fade-in">
             <div class="text-6xl mb-6">✨</div>
             <h1 class="text-3xl font-bold mb-8 italic text-amber-200">Star Board</h1>
             <input type="password" id="password" placeholder="Passcode" 
+                onkeydown="if(event.key === 'Enter') handleLogin()"
                 class="w-full p-4 rounded-2xl bg-white/10 border border-white/20 text-center outline-none focus:border-amber-400 mb-4 transition-all">
             <button onclick="handleLogin()" class="w-full bg-amber-400 text-black p-4 rounded-2xl font-bold hover:bg-amber-300 transition-all">Illuminate</button>
         </div>
@@ -75,7 +80,7 @@
                 </h1>
                 <p class="text-amber-100/40 text-sm mt-1 uppercase tracking-widest font-medium">Under the same sky</p>
             </div>
-            <button onclick="handleLogout()" class="text-[10px] text-white/30 hover:text-white uppercase tracking-widest border border-white/10 px-3 py-1 rounded-full">Sleep</button>
+            <button onclick="handleLogout()" class="text-[10px] text-white/30 hover:text-white uppercase tracking-widest border border-white/10 px-3 py-1 rounded-full transition-colors">Sleep</button>
         </header>
 
         <div id="posts-container" class="masonry"></div>
@@ -88,17 +93,18 @@
     </div>
 
     <!-- Add Post Modal -->
-    <div id="modal-overlay" class="fixed inset-0 z-[60] flex items-center justify-center p-6">
-        <div class="absolute inset-0 bg-black/40 backdrop-blur-md" onclick="hideModal()"></div>
-        <div class="bg-slate-900 w-full max-w-lg rounded-[2rem] p-8 relative border border-white/10 shadow-2xl">
+    <div id="modal-overlay" class="fixed inset-0 z-[60] flex items-center justify-center p-6 bg-black/40 backdrop-blur-md">
+        <div class="absolute inset-0" onclick="hideModal()"></div>
+        <div class="bg-slate-900 w-full max-w-lg rounded-[2rem] p-8 relative border border-white/10 shadow-2xl fade-in">
             <textarea id="post-content" rows="4" placeholder="What's on your mind?" 
+                onkeydown="if(event.key === 'Enter' && !event.shiftKey) { event.preventDefault(); createPost(); }"
                 class="w-full bg-transparent text-xl text-white outline-none resize-none mb-6 placeholder-white/20"></textarea>
             <div class="flex items-center justify-between border-t border-white/5 pt-6">
                 <label class="cursor-pointer text-amber-400/60 hover:text-amber-400 transition-colors">
                     <input type="file" id="post-image" accept="image/*" class="hidden">
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-7 w-7" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
                 </label>
-                <button onclick="createPost()" id="post-btn" class="bg-amber-400 text-black px-10 py-3 rounded-full font-bold shadow-lg hover:shadow-amber-400/20 transition-all">Cast Star</button>
+                <button onclick="createPost()" id="post-btn" class="bg-amber-400 text-black px-10 py-3 rounded-full font-bold shadow-lg hover:bg-amber-300 transition-all">Cast Star</button>
             </div>
         </div>
     </div>
@@ -113,11 +119,11 @@
         for (let i = 0; i < 150; i++) {
             const star = document.createElement('div');
             star.className = 'star';
-            const size = Math.random() * 3 + 'px';
+            const size = (Math.random() * 2 + 1) + 'px';
             star.style.width = size; star.style.height = size;
             star.style.top = Math.random() * 100 + '%';
             star.style.left = Math.random() * 100 + '%';
-            star.style.setProperty('--duration', Math.random() * 3 + 2 + 's');
+            star.style.setProperty('--duration', (Math.random() * 3 + 2) + 's');
             starsContainer.appendChild(star);
         }
 
@@ -134,76 +140,123 @@
 
         function handleLogout() { localStorage.removeItem('board_session'); location.reload(); }
         function showView(id) { document.getElementById('auth-view').style.display = id === 'auth-view' ? 'flex' : 'none'; document.getElementById('board-view').style.display = id === 'board-view' ? 'block' : 'none'; }
-        function showModal() { document.getElementById('modal-overlay').style.display = 'flex'; }
+        function showModal() { document.getElementById('modal-overlay').style.display = 'flex'; document.getElementById('post-content').focus(); }
         function hideModal() { document.getElementById('modal-overlay').style.display = 'none'; }
 
         async function init() {
             await loadPosts();
-            // Realtime setup
-            sb.channel('updates').on('postgres_changes', { event: '*', table: 'posts' }, loadPosts).on('postgres_changes', { event: '*', table: 'replies' }, loadPosts).subscribe();
+            // Subscribe to all changes in posts and replies
+            sb.channel('updates')
+              .on('postgres_changes', { event: '*', table: 'posts' }, loadPosts)
+              .on('postgres_changes', { event: '*', table: 'replies' }, loadPosts)
+              .subscribe();
         }
 
         async function loadPosts() {
-            const { data: posts } = await sb.from('posts').select('*, replies(*)').order('created_at', { ascending: false });
-            if (posts) {
-                document.getElementById('posts-container').innerHTML = posts.map(p => {
-                    const react = p.reactions || {};
-                    return `
-                    <div class="post-card p-6">
-                        <div class="text-[10px] uppercase text-white/20 mb-4 tracking-tighter">${new Date(p.created_at).toLocaleString()}</div>
-                        <div class="text-white text-lg mb-4 whitespace-pre-wrap">${p.content}</div>
-                        ${p.image_url ? `<img src="${p.image_url}" class="rounded-xl mb-4 w-full shadow-lg">` : ''}
-                        
-                        <!-- Reactions -->
-                        <div class="flex gap-2 mb-6">
-                            ${['❤️', '✨', '🌙', '🫂'].map(emoji => `
-                                <button onclick="reactToPost('${p.id}', '${emoji}')" class="bg-white/5 hover:bg-white/20 px-3 py-1 rounded-full text-sm transition-all">
-                                    ${emoji} <span class="text-[10px] ml-1 opacity-50">${react[emoji] || 0}</span>
-                                </button>
+            const { data: posts, error } = await sb.from('posts').select('*, replies(*)').order('created_at', { ascending: false });
+            if (error) { console.error("Error loading posts:", error); return; }
+            
+            const container = document.getElementById('posts-container');
+            container.innerHTML = (posts || []).map(p => {
+                const react = p.reactions || {};
+                const postDate = new Date(p.created_at).toLocaleString('en-US', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
+                
+                return `
+                <div class="post-card p-6 fade-in">
+                    <div class="text-[10px] uppercase text-white/20 mb-4 tracking-wider font-bold">${postDate}</div>
+                    <div class="text-white text-lg mb-6 whitespace-pre-wrap leading-relaxed">${p.content}</div>
+                    ${p.image_url ? `<img src="${p.image_url}" class="rounded-2xl mb-6 w-full shadow-lg border border-white/5">` : ''}
+                    
+                    <!-- Reactions -->
+                    <div class="flex flex-wrap gap-2 mb-6">
+                        ${['❤️', '✨', '🌙', '🫂'].map(emoji => `
+                            <button onclick="reactToPost('${p.id}', '${emoji}')" class="bg-white/5 hover:bg-white/10 px-4 py-1.5 rounded-full text-sm transition-all active:scale-95">
+                                ${emoji} <span class="text-[10px] ml-1 text-amber-200/60 font-medium">${react[emoji] || 0}</span>
+                            </button>
+                        `).join('')}
+                    </div>
+
+                    <!-- Replies -->
+                    <div class="space-y-3 border-t border-white/5 pt-6">
+                        <div class="max-h-40 overflow-y-auto space-y-2 pr-2">
+                            ${(p.replies || []).map(r => `
+                                <div class="text-sm text-amber-50/70 bg-white/5 p-3 rounded-2xl border border-white/5">
+                                    <span class="opacity-40 bounce mr-1 text-[10px]">☁️</span> ${r.content}
+                                </div>
                             `).join('')}
                         </div>
-
-                        <!-- Replies -->
-                        <div class="space-y-3 border-t border-white/5 pt-4">
-                            ${(p.replies || []).map(r => `<div class="text-sm text-white/60 bg-white/5 p-3 rounded-xl">☁️ ${r.content}</div>`).join('')}
-                            <div class="flex gap-2 mt-4">
-                                <input id="reply-${p.id}" type="text" placeholder="Add a reply..." class="bg-transparent border-b border-white/10 text-xs flex-grow outline-none focus:border-amber-400 py-1">
-                                <button onclick="addReply('${p.id}')" class="text-[10px] text-amber-400 uppercase font-bold">Reply</button>
-                            </div>
+                        <div class="flex gap-2 mt-4 items-center">
+                            <input id="reply-${p.id}" type="text" placeholder="Add a reply..." 
+                                onkeydown="if(event.key === 'Enter') addReply('${p.id}')"
+                                class="bg-white/5 rounded-full px-4 py-2 text-xs flex-grow outline-none focus:ring-1 focus:ring-amber-400/50 border border-white/5 transition-all">
+                            <button onclick="addReply('${p.id}')" class="text-[10px] text-amber-400 uppercase font-bold tracking-widest px-2 hover:text-amber-300">Reply</button>
                         </div>
-                    </div>`;
-                }).join('');
-            }
+                    </div>
+                </div>`;
+            }).join('');
         }
 
         async function createPost() {
-            const c = document.getElementById('post-content');
-            const f = document.getElementById('post-image').files[0];
-            const b = document.getElementById('post-btn');
-            if (!c.value && !f) return;
-            b.innerText = "...";
-            let url = null;
-            if (f) {
-                const path = `${Date.now()}-${f.name}`;
-                const { data } = await sb.storage.from('post-images').upload(path, f);
-                if (data) url = sb.storage.from('post-images').getPublicUrl(path).data.publicUrl;
+            const contentEl = document.getElementById('post-content');
+            const fileEl = document.getElementById('post-image');
+            const btn = document.getElementById('post-btn');
+            
+            if (!contentEl.value.trim() && !fileEl.files[0]) return;
+            
+            btn.disabled = true;
+            btn.innerText = "Casting...";
+
+            let image_url = null;
+            if (fileEl.files[0]) {
+                const f = fileEl.files[0];
+                const path = `posts/${Date.now()}-${f.name}`;
+                const { data, error: uploadError } = await sb.storage.from('post-images').upload(path, f);
+                if (data) {
+                    image_url = sb.storage.from('post-images').getPublicUrl(path).data.publicUrl;
+                } else {
+                    console.error("Upload Error:", uploadError);
+                }
             }
-            await sb.from('posts').insert([{ content: c.value, image_url: url }]);
-            c.value = ''; hideModal(); b.innerText = "Cast Star";
+
+            const { error } = await sb.from('posts').insert([{ content: contentEl.value, image_url }]);
+            
+            if (error) {
+                console.error("Insert Error:", error);
+                alert("The star failed to fall. Check console.");
+            } else {
+                contentEl.value = '';
+                fileEl.value = '';
+                hideModal();
+                loadPosts(); // Instant UI refresh
+            }
+            btn.disabled = false;
+            btn.innerText = "Cast Star";
         }
 
         async function reactToPost(id, emoji) {
-            const { data: post } = await sb.from('posts').select('reactions').eq('id', id).single();
-            const reacts = post.reactions || {};
-            reacts[emoji] = (reacts[emoji] || 0) + 1;
-            await sb.from('posts').update({ reactions: reacts }).eq('id', id);
+            // First get the most fresh version of reactions
+            const { data: post, error } = await sb.from('posts').select('reactions').eq('id', id).single();
+            if (error) return;
+            
+            const freshReacts = { ...(post.reactions || {}) };
+            freshReacts[emoji] = (freshReacts[emoji] || 0) + 1;
+            
+            await sb.from('posts').update({ reactions: freshReacts }).eq('id', id);
+            // Realtime will catch this and trigger loadPosts()
         }
 
         async function addReply(postId) {
             const input = document.getElementById(`reply-${postId}`);
-            if (!input.value.trim()) return;
-            await sb.from('replies').insert([{ post_id: postId, content: input.value }]);
-            input.value = '';
+            const text = input.value.trim();
+            if (!text) return;
+            
+            const { error } = await sb.from('replies').insert([{ post_id: postId, content: text }]);
+            if (error) {
+                console.error("Reply Error:", error);
+            } else {
+                input.value = '';
+                loadPosts(); // Instant UI refresh
+            }
         }
 
         checkAuth();
