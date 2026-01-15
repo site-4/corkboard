@@ -6,71 +6,72 @@
     <title>Corkboard</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,500;1,400&family=Inter:wght@300;400;500&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;1,400&family=Inter:wght@300;400;500&display=swap" rel="stylesheet">
     <style>
-        :root { --bg: #f8f6f2; --card: #ffffff; --text: #2d2a26; }
-        body { font-family: 'Inter', sans-serif; background-color: var(--bg); color: var(--text); -webkit-font-smoothing: antialiased; }
+        :root { --bg: #fdfaf6; --card: #ffffff; --accent: #2d2a26; }
+        body { font-family: 'Inter', sans-serif; background-color: var(--bg); color: #444; -webkit-font-smoothing: antialiased; }
         h1, .post-content { font-family: 'Lora', serif; }
         
-        .glass-input { background: rgba(255, 255, 255, 0.5); backdrop-filter: blur(10px); border: 1px solid rgba(0,0,0,0.05); }
-        .post-card { background: var(--card); border: 1px solid rgba(0,0,0,0.03); box-shadow: 0 4px 30px rgba(0,0,0,0.02); transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1); }
-        .post-card:hover { transform: translateY(-4px); box-shadow: 0 12px 40px rgba(0,0,0,0.04); }
+        .post-card { background: var(--card); border: 1px solid #f1ece4; box-shadow: 0 10px 40px -15px rgba(0,0,0,0.05); transition: transform 0.4s ease; }
+        .post-card:hover { transform: translateY(-2px); }
         
+        .login-input { background: #fff; border: 1px solid #e5e1da; transition: all 0.3s ease; }
+        .login-input:focus { border-color: #2d2a26; outline: none; box-shadow: 0 0 0 4px rgba(0,0,0,0.02); }
+
         #auth-view, #board-view { display: none; }
-        .fade-in { animation: fadeIn 0.8s ease forwards; }
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-        
-        /* Custom scrollbar for a cleaner look */
-        ::-webkit-scrollbar { width: 6px; }
-        ::-webkit-scrollbar-track { background: transparent; }
-        ::-webkit-scrollbar-thumb { background: #e0ddd7; border-radius: 10px; }
+        .fade-in { animation: fadeIn 1.2s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
     </style>
 </head>
-<body class="min-h-screen selection:bg-stone-200">
+<body class="min-h-screen">
 
     <!-- Login View -->
-    <div id="auth-view" class="fixed inset-0 flex items-center justify-center p-6">
-        <div class="max-w-sm w-full text-center space-y-8 fade-in">
-            <h1 class="text-4xl italic font-medium tracking-tight">Corkboard</h1>
-            <div class="space-y-4">
+    <div id="auth-view" class="fixed inset-0 flex items-center justify-center p-6 bg-[#fdfaf6]">
+        <div class="max-w-sm w-full text-center space-y-10 fade-in">
+            <div>
+                <h1 class="text-5xl italic mb-3 text-stone-800">Corkboard</h1>
+                <p class="text-stone-400 text-xs tracking-[0.2em] uppercase">Private Space</p>
+            </div>
+            <div class="space-y-3">
                 <input type="password" id="password" placeholder="Passcode" 
-                    class="w-full p-4 rounded-2xl glass-input text-center focus:outline-none focus:ring-2 focus:ring-stone-200 transition-all text-lg">
+                    class="w-full p-4 rounded-2xl login-input text-center text-lg">
                 <button onclick="handleLogin()" 
-                    class="w-full bg-stone-800 text-white p-4 rounded-2xl font-medium hover:bg-stone-700 transition-colors shadow-lg">Open</button>
+                    class="w-full bg-stone-800 text-white p-4 rounded-2xl font-medium hover:bg-stone-700 transition-all active:scale-95 shadow-lg">Enter</button>
             </div>
         </div>
     </div>
 
     <!-- Board View -->
-    <div id="board-view" class="max-w-xl mx-auto py-20 px-6 fade-in">
-        <header class="mb-20 text-center relative">
-            <h1 class="text-5xl italic text-stone-800 mb-2">Our Space</h1>
-            <p class="text-stone-400 font-light tracking-widest uppercase text-[10px]">Two people. One board.</p>
-            <button onclick="handleLogout()" class="absolute -top-10 right-0 text-[10px] text-stone-300 hover:text-stone-600 uppercase tracking-widest transition-colors">Close Board</button>
+    <div id="board-view" class="max-w-xl mx-auto py-24 px-6 fade-in">
+        <header class="mb-24 flex justify-between items-center">
+            <h1 class="text-3xl italic text-stone-800">Corkboard.</h1>
+            <button onclick="handleLogout()" class="text-[10px] text-stone-300 hover:text-stone-800 uppercase tracking-widest transition-colors font-semibold">Sign Out</button>
         </header>
 
         <!-- New Post Form -->
-        <div class="mb-24 group">
-            <div class="bg-white rounded-[2rem] p-8 shadow-sm border border-stone-100 transition-all focus-within:shadow-xl focus-within:border-stone-200">
-                <textarea id="post-content" rows="3" placeholder="Share a thought..." 
-                    class="w-full resize-none border-none focus:ring-0 text-xl post-content placeholder-stone-200 leading-relaxed"></textarea>
+        <div class="mb-24">
+            <div class="bg-white rounded-[2rem] p-10 border border-stone-100 shadow-sm focus-within:shadow-xl transition-all duration-500">
+                <textarea id="post-content" rows="3" placeholder="Click to write..." 
+                    class="w-full resize-none border-none focus:ring-0 text-xl post-content placeholder-stone-200 leading-relaxed text-stone-800"></textarea>
                 
                 <div class="flex items-center justify-between mt-8 pt-6 border-t border-stone-50">
-                    <label class="cursor-pointer group/file">
+                    <label class="group cursor-pointer">
                         <input type="file" id="post-image" accept="image/*" class="hidden">
-                        <span class="text-xs text-stone-400 group-hover/file:text-stone-600 transition-colors flex items-center gap-2">
-                             <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 256 256"><path d="M208,56H180.28L166.65,35.56A8,8,0,0,0,160,32H96a8,8,0,0,0-6.65,3.56L75.72,56H48A24,24,0,0,0,24,80V192a24,24,0,0,0,24,24H208a24,24,0,0,0,24-24V80A24,24,0,0,0,208,56Zm8,136a8,8,0,0,1-8,8H48a8,8,0,0,1-8-8V80a8,8,0,0,1,8-8H80a8,8,0,0,0,6.65-3.56L100.28,48h55.44l13.63,20.44A8,8,0,0,0,176,72h32a8,8,0,0,1,8,8ZM128,88a44,44,0,1,0,44,44A44.05,44.05,0,0,0,128,88Zm0,72a28,28,0,1,1,28-28A28,28,0,0,1,128,160Z"></path></svg>
-                             Add Photo
+                        <span class="text-[11px] text-stone-400 group-hover:text-stone-600 transition-colors flex items-center gap-2 uppercase font-bold tracking-tighter">
+                             <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M2.25 15.75l5.159-5.159a2.25 2.25 0 013.182 0l5.159 5.159m-1.5-1.5l1.409-1.409a2.25 2.25 0 013.182 0l2.909 2.909m-18 3.75h16.5a1.5 1.5 0 001.5-1.5V6.75a1.5 1.5 0 00-1.5-1.5H3.75A1.5 1.5 0 002.25 6.75v10.5a1.5 1.5 0 001.5 1.5zm10.5-11.25h.008v.008h-.008V8.25zm.375 0a.375.375 0 11-.75 0 .375.375 0 01.75 0z" />
+                             </svg>
+                             Upload Image
                         </span>
                     </label>
                     <button onclick="createPost()" id="post-btn" 
-                        class="bg-stone-800 text-white px-8 py-3 rounded-full text-sm font-medium hover:bg-stone-900 transition-all active:scale-95 shadow-md">Post Note</button>
+                        class="bg-stone-800 text-white px-10 py-3 rounded-full text-xs font-bold uppercase tracking-widest hover:bg-stone-900 transition-all">Post</button>
                 </div>
             </div>
         </div>
 
         <!-- Posts Feed -->
-        <div id="posts-container" class="space-y-16">
+        <div id="posts-container" class="space-y-20">
             <!-- Posts Injected Here -->
         </div>
     </div>
@@ -79,7 +80,6 @@
         const SUPABASE_URL = 'https://bqiyfewuempqfymearrw.supabase.co';
         const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJxaXlmZXd1ZW1wcWZ5bWVhcnJ3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njg0Mzg3MzksImV4cCI6MjA4NDAxNDczOX0.He0wDj2TIfOUb7pMCOO5FIIJC1zzmnuponKhh-1rtcM';
         
-        // Correct client initialization
         const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
         function checkAuth() {
@@ -93,12 +93,11 @@
         }
 
         function handleLogin() {
-            const pass = document.getElementById('password').value;
-            if (pass === 'cork2026') {
+            if (document.getElementById('password').value === 'cork2026') {
                 localStorage.setItem('board_session', 'active');
                 checkAuth();
             } else {
-                alert('Wrong passcode.');
+                alert('Passcode incorrect.');
             }
         }
 
@@ -113,69 +112,58 @@
         }
 
         async function loadPosts() {
-            const { data, error } = await sb.from('posts').select('*').order('created_at', { ascending: false });
+            const { data } = await sb.from('posts').select('*').order('created_at', { ascending: false });
             if (data) {
-                const container = document.getElementById('posts-container');
-                container.innerHTML = data.map(post => renderPost(post)).join('');
+                document.getElementById('posts-container').innerHTML = data.map(post => renderPost(post)).join('');
             }
         }
 
         function renderPost(post) {
-            const date = new Date(post.created_at).toLocaleDateString('en-US', { 
-                month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit' 
-            });
+            const date = new Date(post.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
             return `
-                <div class="post-card rounded-[2.5rem] p-10 fade-in">
-                    <p class="text-[10px] uppercase tracking-[0.3em] text-stone-300 mb-8 font-medium">${date}</p>
-                    <div class="post-content text-2xl text-stone-800 leading-[1.6] whitespace-pre-wrap">${post.content}</div>
-                    ${post.image_url ? `<img src="${post.image_url}" class="mt-10 rounded-3xl w-full h-auto shadow-sm">` : ''}
+                <div class="post-card rounded-[2.5rem] p-12 fade-in">
+                    <p class="text-[10px] uppercase tracking-[0.4em] text-stone-300 mb-8 font-bold">${date}</p>
+                    <div class="post-content text-2xl text-stone-800 leading-[1.7] whitespace-pre-wrap">${post.content}</div>
+                    ${post.image_url ? `<img src="${post.image_url}" class="mt-12 rounded-[2rem] w-full h-auto">` : ''}
                 </div>
             `;
         }
 
         async function createPost() {
-            const contentEl = document.getElementById('post-content');
-            const imageEl = document.getElementById('post-image');
+            const content = document.getElementById('post-content');
+            const fileInput = document.getElementById('post-image');
             const btn = document.getElementById('post-btn');
             
-            if (!contentEl.value.trim() && !imageEl.files[0]) return;
+            if (!content.value.trim() && !fileInput.files[0]) return;
             
             btn.disabled = true;
             btn.innerText = "...";
 
             let image_url = null;
-            if (imageEl.files[0]) {
-                const file = imageEl.files[0];
-                const fileName = `${Date.now()}-${file.name}`;
-                const { data, error: uploadError } = await sb.storage.from('post-images').upload(fileName, file);
-                
+            if (fileInput.files[0]) {
+                const file = fileInput.files[0];
+                const path = `${Date.now()}-${file.name}`;
+                const { data } = await sb.storage.from('post-images').upload(path, file);
                 if (data) {
-                    const { data: urlData } = sb.storage.from('post-images').getPublicUrl(fileName);
-                    image_url = urlData.publicUrl;
+                    image_url = sb.storage.from('post-images').getPublicUrl(path).data.publicUrl;
                 }
             }
 
-            const { error } = await sb.from('posts').insert([{ content: contentEl.value, image_url }]);
+            const { error } = await sb.from('posts').insert([{ content: content.value, image_url }]);
 
-            if (error) {
-                console.error(error);
-                alert("Couldn't post. Check console.");
-            } else {
-                contentEl.value = '';
-                imageEl.value = '';
-                loadPosts(); // Backup if realtime lags
+            if (error) alert("Error: Check console");
+            else {
+                content.value = '';
+                fileInput.value = '';
+                loadPosts();
             }
-            
             btn.disabled = false;
-            btn.innerText = "Post Note";
+            btn.innerText = "Post";
         }
 
         function subscribe() {
-            sb.channel('global-board')
-            .on('postgres_changes', { event: 'INSERT', table: 'posts' }, payload => {
-                const container = document.getElementById('posts-container');
-                container.insertAdjacentHTML('afterbegin', renderPost(payload.new));
-            })
+            sb.channel('realtime-posts')
+            .on('postgres_changes', { event: 'INSERT', table: 'posts' }, loadPosts)
             .subscribe();
         }
 
