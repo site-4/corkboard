@@ -10,7 +10,7 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <style>
-        :root { --accent: #fbbf24; --grace: #fcd34d; --derrick: #60a5fa; }
+        :root { --accent: #fbbf24; --grace: #FFD700; --derrick: #60a5fa; }
         body { 
             font-family: 'Inter', sans-serif; 
             background: radial-gradient(ellipse at bottom, #1B2735 0%, #090A0F 100%);
@@ -50,7 +50,7 @@
 
         @keyframes slideUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
 
-        .name-grace { color: var(--grace) !important; text-shadow: 0 0 10px rgba(252, 211, 77, 0.3); font-weight: 800 !important; }
+        .name-grace { color: var(--grace) !important; text-shadow: 0 0 12px rgba(255, 215, 0, 0.6); font-weight: 900 !important; }
         .name-derrick { color: var(--derrick) !important; text-shadow: 0 0 10px rgba(96, 165, 250, 0.3); font-weight: 800 !important; }
 
         .presence-dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; background: #333; transition: all 0.5s ease; position: relative; }
@@ -168,7 +168,10 @@
                     </div>
                     <span class="text-xs font-bold text-amber-200/40 group-hover:text-amber-200 transition-colors">Add Visual</span>
                 </label>
-                <button onclick="createPost()" id="post-btn" class="bg-amber-400 text-black px-10 py-4 rounded-2xl font-bold uppercase tracking-widest shadow-xl hover:scale-105 active:scale-95 transition-all">Cast Star</button>
+                <div class="flex flex-col items-end">
+                    <button onclick="createPost()" id="post-btn" class="bg-amber-400 text-black px-10 py-4 rounded-2xl font-bold uppercase tracking-widest shadow-xl hover:scale-105 active:scale-95 transition-all">Cast Star</button>
+                    <div id="modal-typing-status" class="text-[9px] font-black uppercase tracking-widest text-amber-400/40 italic mt-2 opacity-0 transition-opacity pointer-events-none h-4"></div>
+                </div>
             </div>
         </div>
     </div>
@@ -299,6 +302,7 @@
                     loadPosts();
                 })
                 .on('postgres_changes', { event: '*', table: 'posts' }, loadPosts)
+                .on('postgres_changes', { event: 'UPDATE', table: 'posts' }, loadPosts)
                 .subscribe();
 
             // Presence & Typing Broadcast
@@ -321,6 +325,7 @@
                 })
                 .on('broadcast', { event: 'typing' }, (payload) => {
                     const statusEl = document.getElementById('typing-status');
+                    const modalStatusEl = document.getElementById('modal-typing-status');
                     const { user: typingUser, isTyping, action } = payload.payload;
                     const currentUser = localStorage.getItem('board_user');
                     
@@ -331,8 +336,14 @@
                     if (typingUser !== currentUser && isTyping) {
                         statusEl.innerText = `${typingUser} is ${action}...`;
                         statusEl.style.opacity = '1';
+                        // Handle Modal indicator specifically
+                        if(action === 'casting a star') {
+                            modalStatusEl.innerText = `${typingUser} is ${action}...`;
+                            modalStatusEl.style.opacity = '1';
+                        }
                     } else if (typingUser !== currentUser) {
                         statusEl.style.opacity = '0';
+                        modalStatusEl.style.opacity = '0';
                     }
                 })
                 .subscribe(async (status) => {
