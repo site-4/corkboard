@@ -4,7 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Starboard Chat</title>
-    <link rel="icon" id="favicon" type="image/svg+xml" href="">
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;900&display=swap" rel="stylesheet">
@@ -12,87 +11,97 @@
         :root { --accent: #fbbf24; --grace: #FFD700; --derrick: #60a5fa; }
         body { 
             font-family: 'Inter', sans-serif; 
-            background: radial-gradient(ellipse at bottom, #1B2735 0%, #090A0F 100%);
-            background-attachment: fixed;
+            background: #090A0F;
             color: #fff; height: 100vh; display: flex; flex-direction: column; overflow: hidden;
         }
 
-        .stars-container { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: -1; pointer-events: none; }
-        .star { position: absolute; background: white; border-radius: 50%; opacity: 0.5; animation: twinkle var(--duration) infinite; }
-        @keyframes twinkle { 0%, 100% { opacity: 0.3; transform: scale(1); } 50% { opacity: 1; transform: scale(1.2); } }
+        /* Enhanced Cosmic Background */
+        .stars-container { position: fixed; inset: 0; z-index: -1; pointer-events: none; background: radial-gradient(circle at center, #1B2735 0%, #090A0F 100%); }
+        .star { position: absolute; background: white; border-radius: 50%; opacity: 0; animation: twinkle var(--duration) infinite ease-in-out; }
+        @keyframes twinkle { 
+            0%, 100% { opacity: 0.2; transform: scale(1); } 
+            50% { opacity: 0.8; transform: scale(1.2); } 
+        }
 
-        #chat-window { flex: 1; overflow-y: auto; padding: 1.5rem; display: flex; flex-direction: column; gap: 1rem; scroll-behavior: smooth; }
-        .message-row { display: flex; width: 100%; margin-bottom: 0.5rem; animation: slideUp 0.3s ease-out; }
+        #chat-window { flex: 1; overflow-y: auto; padding: 1.5rem; display: flex; flex-direction: column; gap: 0.8rem; scroll-behavior: smooth; }
+        ::-webkit-scrollbar { width: 4px; }
+        ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 10px; }
+
+        .message-row { display: flex; width: 100%; animation: slideUp 0.4s cubic-bezier(0.16, 1, 0.3, 1); }
         .message-row.me { justify-content: flex-end; }
         .message-row.them { justify-content: flex-start; }
 
         .bubble {
-            max-width: 80%; padding: 0.8rem 1.2rem; border-radius: 1.5rem;
-            position: relative; backdrop-filter: blur(10px);
-            border: 1px solid rgba(255,255,255,0.1);
-            transition: transform 0.2s;
+            max-width: 80%; padding: 0.7rem 1rem; border-radius: 1.25rem;
+            position: relative; backdrop-filter: blur(12px);
+            border: 1px solid rgba(255,255,255,0.08);
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
         }
-        .me .bubble { 
-            background: rgba(255, 255, 255, 0.1); 
-            border-bottom-right-radius: 0.2rem;
-            border-color: rgba(255,255,255,0.2);
-        }
-        .them .bubble { 
-            background: rgba(255, 255, 255, 0.05); 
-            border-bottom-left-radius: 0.2rem;
-        }
+        .me .bubble { background: rgba(255, 255, 255, 0.12); border-bottom-right-radius: 0.25rem; }
+        .them .bubble { background: rgba(255, 255, 255, 0.04); border-bottom-left-radius: 0.25rem; }
 
-        .name-grace { color: var(--grace) !important; text-shadow: 0 0 8px rgba(255, 215, 0, 0.4); font-weight: 900; }
-        .name-derrick { color: var(--derrick) !important; text-shadow: 0 0 8px rgba(96, 165, 250, 0.3); font-weight: 900; }
+        .name-grace { color: var(--grace); text-shadow: 0 0 10px rgba(255, 215, 0, 0.3); font-weight: 900; }
+        .name-derrick { color: var(--derrick); text-shadow: 0 0 10px rgba(96, 165, 250, 0.3); font-weight: 900; }
 
-        .presence-dot { width: 10px; height: 10px; border-radius: 50%; display: inline-block; background: #333; transition: all 0.3s ease; }
-        .presence-dot.online { background: #10b981; box-shadow: 0 0 10px #10b981; }
+        .presence-dot { width: 8px; height: 8px; border-radius: 50%; background: #333; transition: 0.3s; }
+        .presence-dot.online { background: #10b981; box-shadow: 0 0 12px #10b981; }
         
-        /* Reaction Menu */
+        /* Interactive Reactions */
         .reaction-bar {
-            position: absolute; bottom: -30px; 
-            background: rgba(0,0,0,0.8); border-radius: 20px;
-            padding: 4px 8px; display: flex; gap: 8px;
-            opacity: 0; pointer-events: none; transition: 0.2s; z-index: 50;
+            position: absolute; bottom: -32px; 
+            background: rgba(15, 20, 30, 0.95); border-radius: 20px;
+            padding: 6px 10px; display: flex; gap: 10px;
+            opacity: 0; pointer-events: none; transition: 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+            z-index: 50; border: 1px solid rgba(255,255,255,0.1);
         }
-        .bubble:hover .reaction-bar { opacity: 1; pointer-events: auto; transform: translateY(-5px); }
+        .bubble:hover .reaction-bar { opacity: 1; pointer-events: auto; transform: translateY(-4px); }
         .me .reaction-bar { right: 0; }
         .them .reaction-bar { left: 0; }
 
-        @keyframes slideUp { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        @keyframes slideUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
 
         .input-bar {
-            background: rgba(15, 20, 30, 0.8); backdrop-filter: blur(20px);
-            border-top: 1px solid rgba(255,255,255,0.1);
-            padding: 1rem 1.5rem 2rem 1.5rem;
+            background: rgba(10, 15, 25, 0.7); backdrop-filter: blur(25px);
+            border-top: 1px solid rgba(255,255,255,0.05);
+            padding: 1rem 1.5rem calc(1rem + env(safe-area-inset-bottom));
         }
 
-        #auth-view, #board-view { height: 100vh; width: 100%; }
-        input[type="password"] { background: rgba(255,255,255,0.06); color: white; }
-        
-        .read-receipt { font-size: 10px; opacity: 0.5; margin-top: 2px; text-align: right; }
-        .is-typing-indicator { animation: pulse 1s infinite alternate; }
-        @keyframes pulse { from { opacity: 0.4; } to { opacity: 1; } }
+        #image-overlay {
+            position: fixed; inset: 0; background: rgba(0,0,0,0.9);
+            display: none; align-items: center; justify-content: center; z-index: 200;
+            padding: 20px;
+        }
+
+        .timestamp { font-size: 9px; opacity: 0.4; margin-top: 4px; display: block; }
+        .is-typing-indicator { font-size: 10px; font-style: italic; color: var(--accent); }
     </style>
 </head>
 <body>
     <div class="stars-container" id="stars"></div>
+    <div id="image-overlay" onclick="this.style.display='none'">
+        <img id="overlay-img" src="" class="max-w-full max-h-full rounded-lg shadow-2xl">
+    </div>
 
+    <!-- Auth View -->
     <div id="auth-view" class="fixed inset-0 z-[100] flex items-center justify-center bg-[#090A0F] hidden">
         <div class="max-w-xs w-full text-center">
-            <div class="text-6xl mb-6">✨</div>
-            <h1 class="text-3xl font-black mb-8 italic text-amber-200 tracking-tight">STARBOARD</h1>
-            <input type="password" id="password" placeholder="Passcode" 
+            <div class="text-6xl mb-4">✨</div>
+            <h1 class="text-3xl font-black mb-8 italic text-amber-200 tracking-tighter">STARBOARD</h1>
+            <input type="password" id="password" placeholder="ENTER CODENAME" 
                 onkeydown="if(event.key === 'Enter') handleLogin()"
-                class="w-full p-5 rounded-3xl border border-white/10 text-center outline-none focus:border-amber-400 mb-4 transition-all uppercase tracking-widest font-bold">
-            <button onclick="handleLogin()" class="w-full bg-amber-400 text-black p-5 rounded-3xl font-black uppercase tracking-widest hover:bg-amber-300 transition-all">Enter Thread</button>
+                class="w-full p-5 rounded-3xl border border-white/10 text-center outline-none focus:border-amber-400 mb-4 transition-all uppercase tracking-widest font-bold bg-white/5">
+            <button onclick="handleLogin()" class="w-full bg-amber-400 text-black p-5 rounded-3xl font-black uppercase tracking-widest hover:brightness-110 active:scale-95 transition-all">Enter Thread</button>
         </div>
     </div>
 
-    <div id="board-view" class="flex flex-col hidden">
-        <header class="p-6 flex justify-between items-center bg-transparent z-10">
-            <h1 class="text-2xl font-black text-amber-200 tracking-tighter">STARBOARD</h1>
-            <div id="presence-list" class="flex gap-4">
+    <!-- Board View -->
+    <div id="board-view" class="flex flex-col h-full hidden">
+        <header class="p-6 flex justify-between items-center z-10">
+            <div>
+                <h1 class="text-xl font-black text-amber-200 tracking-tighter inline-block mr-2 cursor-pointer" onclick="location.reload()">STARBOARD</h1>
+                <span class="text-[10px] opacity-30 uppercase font-bold tracking-widest">Secured</span>
+            </div>
+            <div class="flex gap-4 items-center">
                 <div class="flex items-center gap-2">
                     <span id="dot-Grace" class="presence-dot"></span>
                     <span class="text-[9px] font-black uppercase tracking-widest name-grace">Grace</span>
@@ -101,32 +110,37 @@
                     <span id="dot-Derrick" class="presence-dot"></span>
                     <span class="text-[9px] font-black uppercase tracking-widest name-derrick">Derrick</span>
                 </div>
+                <button onclick="localStorage.removeItem('board_user'); location.reload();" class="ml-2 opacity-30 hover:opacity-100 transition-opacity">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                </button>
             </div>
         </header>
 
-        <div id="chat-window" onscroll="handleScroll()"></div>
+        <div id="chat-window"></div>
 
-        <div id="typing-status" class="px-6 py-1 h-4 text-[9px] font-black uppercase tracking-widest text-amber-400 italic opacity-0 transition-opacity"></div>
+        <div id="typing-status" class="px-6 py-1 h-5 opacity-0 transition-opacity">
+            <span class="is-typing-indicator"></span>
+        </div>
 
         <div class="input-bar">
-            <div id="preview-panel" class="hidden mb-3 relative">
-                <img id="image-preview" src="" class="h-20 w-20 object-cover rounded-xl border border-white/20">
-                <button onclick="clearImage()" class="absolute -top-2 -left-2 bg-red-500 text-white rounded-full p-1"><svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M6 18L18 6M6 6l12 12" stroke-width="3"/></svg></button>
+            <div id="preview-panel" class="hidden mb-3 relative inline-block">
+                <img id="image-preview" src="" class="h-16 w-16 object-cover rounded-lg border border-white/20">
+                <button onclick="clearImage()" class="absolute -top-2 -right-2 bg-red-500 text-white rounded-full p-1 shadow-lg"><svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M6 18L18 6M6 6l12 12" stroke-width="3"/></svg></button>
             </div>
             <div class="flex items-center gap-3">
-                <label class="cursor-pointer transition-transform active:scale-90">
+                <label class="cursor-pointer group">
                     <input type="file" id="post-image" accept="image/*" class="hidden" onchange="previewFile()">
-                    <div class="bg-white/5 p-3 rounded-full border border-white/10 text-amber-400">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
+                    <div class="bg-white/5 p-3 rounded-full border border-white/10 text-amber-400 group-hover:bg-white/10 transition-colors">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" /></svg>
                     </div>
                 </label>
                 <input type="text" id="post-content" 
-                    placeholder="Send a message..." 
+                    placeholder="Message..." 
                     oninput="handleTyping()"
                     onkeydown="if(event.key === 'Enter') createPost()"
-                    class="flex-1 bg-white/5 border border-white/10 rounded-full px-6 py-3 outline-none focus:border-amber-400/50 transition-all text-sm">
-                <button onclick="createPost()" class="bg-amber-400 text-black p-3 rounded-full font-bold active:scale-90 transition-all">
-                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"/></svg>
+                    class="flex-1 bg-white/5 border border-white/10 rounded-2xl px-5 py-3 outline-none focus:border-amber-400/40 focus:bg-white/10 transition-all text-sm">
+                <button onclick="createPost()" class="bg-amber-400 text-black p-3 rounded-full font-bold active:scale-90 transition-all shadow-lg shadow-amber-400/20">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 12h14M12 5l7 7-7 7"/></svg>
                 </button>
             </div>
         </div>
@@ -139,12 +153,13 @@
 
         let presenceChannel;
         let typingTimeout;
+        let isAtBottom = true;
 
         function handleLogin() {
             const pass = document.getElementById('password').value;
             const user = pass === 'star2026' ? "Grace" : (pass === 'Rich6696' ? "Derrick" : null);
             if (user) { localStorage.setItem('board_user', user); checkAuth(); }
-            else alert('Denied.');
+            else alert('Access Denied.');
         }
 
         function checkAuth() {
@@ -177,12 +192,17 @@
                     const { user: typingUser, isTyping } = payload.payload;
                     if (typingUser === user) return;
                     const status = document.getElementById('typing-status');
-                    status.innerText = isTyping ? `${typingUser} is typing...` : '';
+                    status.querySelector('span').innerText = isTyping ? `${typingUser} is typing...` : '';
                     status.style.opacity = isTyping ? '1' : '0';
                 })
                 .subscribe(async (status) => {
                     if (status === 'SUBSCRIBED') await presenceChannel.track({ online_at: new Date().toISOString() });
                 });
+            
+            document.getElementById('chat-window').addEventListener('scroll', (e) => {
+                const { scrollTop, scrollHeight, clientHeight } = e.target;
+                isAtBottom = scrollHeight - scrollTop - clientHeight < 100;
+            });
         }
 
         function handleTyping() {
@@ -191,6 +211,11 @@
             typingTimeout = setTimeout(() => {
                 presenceChannel.send({ type: 'broadcast', event: 'typing', payload: { user: localStorage.getItem('board_user'), isTyping: false } });
             }, 2000);
+        }
+
+        function formatTime(iso) {
+            const date = new Date(iso);
+            return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
         }
 
         async function loadMessages() {
@@ -202,38 +227,54 @@
                 const isMe = m.author === currentUser;
                 const authorClass = m.author === 'Grace' ? 'name-grace' : 'name-derrick';
                 const readBy = m.read_by || [];
-                const isRead = readBy.length > 1; // Both users seen it
+                const isRead = readBy.length > 1;
 
-                // Mark as read if it's not mine and I haven't read it
                 if (!isMe && !readBy.includes(currentUser)) markAsRead(m.id, readBy);
 
                 return `
                 <div class="message-row ${isMe ? 'me' : 'them'}">
                     <div class="bubble">
-                        <div class="text-[8px] font-black uppercase tracking-tighter mb-1 ${authorClass}">${m.author}</div>
-                        ${m.content ? `<div class="text-sm leading-relaxed">${m.content}</div>` : ''}
-                        ${m.image_url ? `<img src="${m.image_url}" class="mt-2 rounded-lg max-w-full border border-white/10">` : ''}
-                        <div class="flex flex-wrap gap-1 mt-2">
-                            ${Object.entries(m.reactions || {}).map(([emoji, count]) => count > 0 ? `<button onclick="reactToMessage('${m.id}', '${emoji}')" class="bg-white/10 px-2 py-0.5 rounded-full text-[10px] hover:bg-white/20 transition-colors">${emoji} ${count}</button>` : '').join('')}
+                        <div class="text-[8px] font-black uppercase tracking-tighter mb-1 select-none flex justify-between gap-4">
+                            <span class="${authorClass}">${m.author}</span>
+                            <span class="opacity-40">${formatTime(m.created_at)}</span>
                         </div>
-                        ${isMe ? `<div class="read-receipt">${isRead ? 'Seen' : 'Sent'}</div>` : ''}
-                        <div class="reaction-bar shadow-xl">
-                            <button onclick="reactToMessage('${m.id}', '❤️')" class="hover:scale-125 transition-transform">❤️</button>
-                            <button onclick="reactToMessage('${m.id}', '✨')" class="hover:scale-125 transition-transform">✨</button>
-                            <button onclick="reactToMessage('${m.id}', '🔥')" class="hover:scale-125 transition-transform">🔥</button>
-                            <button onclick="reactToMessage('${m.id}', '😂')" class="hover:scale-125 transition-transform">😂</button>
+                        ${m.content ? `<div class="text-[13px] leading-relaxed whitespace-pre-wrap">${m.content}</div>` : ''}
+                        ${m.image_url ? `<img src="${m.image_url}" onclick="zoomImage(this.src)" class="mt-2 rounded-lg max-w-full cursor-zoom-in hover:brightness-110 transition-all">` : ''}
+                        
+                        <div class="flex flex-wrap gap-1 mt-2">
+                            ${Object.entries(m.reactions || {}).map(([emoji, count]) => count > 0 ? `
+                                <button onclick="reactToMessage('${m.id}', '${emoji}')" class="bg-white/10 px-2 py-0.5 rounded-full text-[10px] hover:bg-white/20 transition-colors border border-white/5 active:scale-90">
+                                    ${emoji} ${count}
+                                </button>` : '').join('')}
+                        </div>
+
+                        <div class="flex justify-between items-center mt-1">
+                            <div class="read-receipt text-[8px] font-bold uppercase tracking-widest opacity-20">
+                                ${isMe ? (isRead ? 'Seen' : 'Delivered') : ''}
+                            </div>
+                        </div>
+
+                        <div class="reaction-bar shadow-2xl">
+                            ${['❤️', '✨', '🔥', '😂', '💯', '🤔'].map(emoji => `
+                                <button onclick="reactToMessage('${m.id}', '${emoji}')" class="hover:scale-150 transition-transform active:scale-90">${emoji}</button>
+                            `).join('')}
                         </div>
                     </div>
                 </div>`;
             }).join('');
-            chatWindow.scrollTop = chatWindow.scrollHeight;
+            
+            if (isAtBottom) chatWindow.scrollTop = chatWindow.scrollHeight;
+        }
+
+        function zoomImage(src) {
+            document.getElementById('overlay-img').src = src;
+            document.getElementById('image-overlay').style.display = 'flex';
         }
 
         async function markAsRead(id, currentReadBy) {
             const user = localStorage.getItem('board_user');
-            if (!currentReadBy.includes(user)) {
-                const newReadBy = [...currentReadBy, user];
-                await sb.from('posts').update({ read_by: newReadBy }).eq('id', id);
+            if (user && !currentReadBy.includes(user)) {
+                await sb.from('posts').update({ read_by: [...currentReadBy, user] }).eq('id', id);
             }
         }
 
@@ -241,27 +282,34 @@
             const ct = document.getElementById('post-content');
             const file = document.getElementById('post-image').files[0];
             const user = localStorage.getItem('board_user');
-            if (!ct.value && !file) return;
+            if (!ct.value.trim() && !file) return;
 
+            const content = ct.value;
+            ct.value = ''; 
+            
             let image_url = null;
             if (file) {
-                const { data } = await sb.storage.from('post-images').upload(`chat/${Date.now()}-${file.name}`, file);
+                const fileName = `chat/${Date.now()}-${file.name}`;
+                const { data } = await sb.storage.from('post-images').upload(fileName, file);
                 if (data) image_url = sb.storage.from('post-images').getPublicUrl(data.path).data.publicUrl;
+                clearImage();
             }
 
-            await sb.from('posts').insert([{ content: ct.value, image_url, author: user, read_by: [user], reactions: {} }]);
-            ct.value = ''; clearImage();
+            await sb.from('posts').insert([{ 
+                content, 
+                image_url, 
+                author: user, 
+                read_by: [user], 
+                reactions: {} 
+            }]);
         }
 
         async function reactToMessage(id, emoji) {
             const { data } = await sb.from('posts').select('reactions').eq('id', id).single();
             const r = { ...(data.reactions || {}) };
+            // Simple toggle-increment logic
             r[emoji] = (r[emoji] || 0) + 1;
             await sb.from('posts').update({ reactions: r }).eq('id', id);
-        }
-
-        function handleScroll() {
-            // Can be used to trigger bulk read receipts if needed
         }
 
         function previewFile() {
@@ -276,13 +324,21 @@
             document.getElementById('preview-panel').classList.add('hidden'); 
         }
 
-        // Initialize stars
+        // Initialize Varied Stars
         const starsContainer = document.getElementById('stars');
-        for (let i = 0; i < 150; i++) {
+        const starColors = ['#fff', '#ffd700', '#60a5fa', '#fff4f4'];
+        for (let i = 0; i < 200; i++) {
             const star = document.createElement('div');
             star.className = 'star';
-            const size = (Math.random() * 2 + 1) + 'px';
-            star.style.cssText = `width:${size};height:${size};top:${Math.random()*100}%;left:${Math.random()*100}%;--duration:${Math.random()*3+2}s`;
+            const size = (Math.random() * 2 + 0.5) + 'px';
+            const color = starColors[Math.floor(Math.random() * starColors.length)];
+            star.style.cssText = `
+                width:${size};height:${size};
+                top:${Math.random()*100}%;left:${Math.random()*100}%;
+                background:${color};
+                --duration:${Math.random()*4+2}s;
+                animation-delay:${Math.random()*5}s;
+            `;
             starsContainer.appendChild(star);
         }
 
