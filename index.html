@@ -92,8 +92,8 @@
         /* Stardust Trail Styles */
         .stardust { position: fixed; pointer-events: none; width: 4px; height: 4px; border-radius: 50%; z-index: 5; animation: stardust-fade 2s ease-out forwards; }
         @keyframes stardust-fade { 
-            0% { transform: scale(1) translate(0, 0); opacity: 1; filter: blur(0); } 
-            100% { transform: scale(3) translate(var(--mx), var(--my)); opacity: 0; filter: blur(3px); } 
+            0% { transform: scale(1); opacity: 1; filter: blur(0); } 
+            100% { transform: scale(3) translateY(20px); opacity: 0; filter: blur(4px); } 
         }
 
         /* Layout & Scrolling */
@@ -263,10 +263,10 @@
             </div>
             
             <div class="flex items-center gap-2">
-                <!-- Stardust Trail Display (Active Status) -->
-                <div id="trail-btn" class="bg-white/20 border border-white/10 p-2.5 rounded-xl text-white/80 btn-icon">
+                <!-- Stardust Trail Trigger -->
+                <button id="trail-btn" onclick="toggleTrails()" class="bg-white/5 border border-white/10 p-2.5 rounded-xl text-white/30 hover:text-white/80 btn-icon">
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z"/></svg>
-                </div>
+                </button>
 
                 <!-- Shared Nebula Trigger -->
                 <button onclick="toggleNebula(true)" class="bg-blue-400/10 border border-blue-400/40 p-2.5 rounded-xl text-blue-400 hover:bg-blue-400/20 btn-icon">
@@ -329,7 +329,7 @@
         let presenceChannel, typingTimeout, isAtBottom = true;
         let nebulaCtx, nebulaActive = false, isDrawing = false, nebulaColor = '#fbbf24';
         let starsData = [], mousePos = { x: -1000, y: -1000 };
-        let trailsActive = true; /* trails are now always active */
+        let trailsActive = false;
 
         const ICONS = {
             DEFAULT: 'data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>⭐</text></svg>',
@@ -425,7 +425,8 @@
                 }
             });
 
-            /* Added: Touch move support for constant stardust on mobile */
+            /* Stardust Always Active Block - Addition only */
+            trailsActive = true; 
             window.addEventListener('touchmove', (e) => {
                 if (trailsActive && !nebulaActive) {
                     const t = e.touches[0];
@@ -434,6 +435,7 @@
                     presenceChannel.send({ type: 'broadcast', event: 'stardust', payload: { x: t.clientX, y: t.clientY, color } });
                 }
             });
+
             requestAnimationFrame(animateStars);
         }
 
@@ -499,22 +501,20 @@
         }
 
         function toggleTrails() {
-            /* Now effectively non-functional to keep trails on permanently */
-            console.log("Stardust trails are set to constant cosmic presence.");
+            trailsActive = !trailsActive;
+            const btn = document.getElementById('trail-btn');
+            btn.classList.toggle('text-white/30', !trailsActive);
+            btn.classList.toggle('text-white/80', trailsActive);
+            btn.classList.toggle('bg-white/20', trailsActive);
         }
 
         function createStardust(x, y, color) {
             const p = document.createElement('div');
             p.className = 'stardust';
-            const size = (Math.random() * 3 + 2) + 'px';
-            p.style.width = size; p.style.height = size;
             p.style.left = x + 'px';
             p.style.top = y + 'px';
             p.style.background = color;
             p.style.boxShadow = `0 0 8px ${color}`;
-            /* Enhanced: Added random drift variables */
-            p.style.setProperty('--mx', (Math.random() * 40 - 20) + 'px');
-            p.style.setProperty('--my', (Math.random() * 40 - 20) + 'px');
             document.body.appendChild(p);
             setTimeout(() => p.remove(), 2000);
         }
