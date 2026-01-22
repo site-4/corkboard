@@ -89,6 +89,13 @@
         .status-typing-em { animation: status-rotate 3s infinite linear; display: inline-block; }
         .status-idle-em { animation: status-fade 4s infinite ease-in-out; display: inline-block; }
 
+        /* Stardust Trail Styles */
+        .stardust { position: fixed; pointer-events: none; width: 4px; height: 4px; border-radius: 50%; z-index: 5; animation: stardust-fade 2s ease-out forwards; }
+        @keyframes stardust-fade { 
+            0% { transform: scale(1); opacity: 1; filter: blur(0); } 
+            100% { transform: scale(3) translateY(20px); opacity: 0; filter: blur(4px); } 
+        }
+
         /* Layout & Scrolling */
         #chat-window { 
             flex: 1; overflow-y: auto; padding: 1.5rem; 
@@ -256,6 +263,11 @@
             </div>
             
             <div class="flex items-center gap-2">
+                <!-- Stardust Trail Trigger -->
+                <button id="trail-btn" onclick="toggleTrails()" class="bg-white/5 border border-white/10 p-2.5 rounded-xl text-white/30 hover:text-white/80 btn-icon">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z"/></svg>
+                </button>
+
                 <!-- Shared Nebula Trigger -->
                 <button onclick="toggleNebula(true)" class="bg-blue-400/10 border border-blue-400/40 p-2.5 rounded-xl text-blue-400 hover:bg-blue-400/20 btn-icon">
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"/></svg>
@@ -317,6 +329,7 @@
         let presenceChannel, typingTimeout, isAtBottom = true;
         let nebulaCtx, nebulaActive = false, isDrawing = false, nebulaColor = '#fbbf24';
         let starsData = [], mousePos = { x: -1000, y: -1000 };
+        let trailsActive = false;
 
         const ICONS = {
             DEFAULT: 'data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>⭐</text></svg>',
@@ -387,6 +400,7 @@
                 .on('broadcast', { event: 'bloom' }, () => triggerBloomLocal())
                 .on('broadcast', { event: 'nebulae-draw' }, (p) => remoteDraw(p.payload))
                 .on('broadcast', { event: 'nebulae-clear' }, () => nebulaCtx.clearRect(0, 0, nebulaCtx.canvas.width, nebulaCtx.canvas.height))
+                .on('broadcast', { event: 'stardust' }, (p) => createStardust(p.payload.x, p.payload.y, p.payload.color))
                 .subscribe(async (s) => {
                     if (s === 'SUBSCRIBED') await presenceChannel.track({ user, online_at: new Date().toISOString(), isTyping: false, isIdle: false });
                 });
@@ -402,7 +416,14 @@
                 presenceChannel.track({ user, online_at: new Date().toISOString(), isTyping: false, isIdle });
             });
 
-            window.addEventListener('mousemove', (e) => { mousePos.x = e.clientX; mousePos.y = e.clientY; });
+            window.addEventListener('mousemove', (e) => { 
+                mousePos.x = e.clientX; mousePos.y = e.clientY; 
+                if (trailsActive) {
+                    const color = user === 'Grace' ? '#FFD700' : '#60a5fa';
+                    createStardust(e.clientX, e.clientY, color);
+                    presenceChannel.send({ type: 'broadcast', event: 'stardust', payload: { x: e.clientX, y: e.clientY, color } });
+                }
+            });
             requestAnimationFrame(animateStars);
         }
 
@@ -465,6 +486,25 @@
             nebulaCtx.stroke();
             nebulaCtx.beginPath();
             nebulaCtx.moveTo(x, y);
+        }
+
+        function toggleTrails() {
+            trailsActive = !trailsActive;
+            const btn = document.getElementById('trail-btn');
+            btn.classList.toggle('text-white/30', !trailsActive);
+            btn.classList.toggle('text-white/80', trailsActive);
+            btn.classList.toggle('bg-white/20', trailsActive);
+        }
+
+        function createStardust(x, y, color) {
+            const p = document.createElement('div');
+            p.className = 'stardust';
+            p.style.left = x + 'px';
+            p.style.top = y + 'px';
+            p.style.background = color;
+            p.style.boxShadow = `0 0 8px ${color}`;
+            document.body.appendChild(p);
+            setTimeout(() => p.remove(), 2000);
         }
 
         /* Feature 3: Interactive Gravity Logic */
