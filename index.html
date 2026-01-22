@@ -323,7 +323,7 @@
 
     <script>
         const SUPABASE_URL = 'https://bqiyfewuempqfymearrw.supabase.co';
-        const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJxaXlmZXd1ZW1wcWZ5bWVhcnJ3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njg0Mzg3MzksImV4cCI6MjA4NDQxMDUyMn0.He0wDj2TIfOUb7pMCOO5FIIJC1zzmnuponKhh-1rtcM';
+        const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJxaXlmZXd1ZW1wcWZ5bWVhcnJ3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njg0Mzg3MzksImV4cCI6MjA4NDAxNDczOX0.He0wDj2TIfOUb7pMCOO5FIIJC1zzmnuponKhh-1rtcM';
         const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
         let presenceChannel, typingTimeout, isAtBottom = true;
@@ -424,18 +424,6 @@
                     presenceChannel.send({ type: 'broadcast', event: 'stardust', payload: { x: e.clientX, y: e.clientY, color } });
                 }
             });
-
-            /* Stardust Always Active Block - Addition only */
-            trailsActive = true; 
-            window.addEventListener('touchmove', (e) => {
-                if (trailsActive && !nebulaActive) {
-                    const t = e.touches[0];
-                    const color = user === 'Grace' ? '#FFD700' : '#60a5fa';
-                    createStardust(t.clientX, t.clientY, color);
-                    presenceChannel.send({ type: 'broadcast', event: 'stardust', payload: { x: t.clientX, y: t.clientY, color } });
-                }
-            });
-
             requestAnimationFrame(animateStars);
         }
 
