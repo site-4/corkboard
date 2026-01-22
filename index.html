@@ -2,157 +2,260 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>Starboard Chat</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
     <link id="favicon" rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>⭐</text></svg>">
     <style>
-        :root { --accent: #fbbf24; --grace: #FFD700; --derrick: #60a5fa; }
+        :root { 
+            --accent: #fbbf24; 
+            --grace: #FFD700; 
+            --derrick: #60a5fa;
+            --space-bg: #05070A;
+            --glass: rgba(255, 255, 255, 0.04);
+            --glass-border: rgba(255, 255, 255, 0.1);
+        }
+
         body { 
             font-family: 'Inter', sans-serif; 
-            background: #090A0F;
-            color: #fff; height: 100vh; display: flex; flex-direction: column; overflow: hidden;
+            background: var(--space-bg);
+            color: #fff; height: 100dvh; display: flex; flex-direction: column; overflow: hidden;
+            -webkit-font-smoothing: antialiased;
         }
-        /* Bloom Transition */
-        body { transition: background 1.5s ease; }
+
+        /* Bloom Effect */
+        body { transition: background 1.5s cubic-bezier(0.4, 0, 0.2, 1); }
         body.bloom-active { background: #1a0b16; }
 
-        /* Enhanced Cosmic Background */
-        .stars-container { position: fixed; inset: 0; z-index: -1; pointer-events: none; background: radial-gradient(circle at center, #1B2735 0%, #090A0F 100%); }
-        .stars-container { transition: all 1.5s ease; }
-        .bloom-active .stars-container { background: radial-gradient(circle at center, #4a1d3b 0%, #1a0b16 100%); filter: saturate(1.5); }
+        .stars-container { 
+            position: fixed; inset: 0; z-index: -1; pointer-events: none; 
+            background: radial-gradient(circle at center, #0B1118 0%, #05070A 100%); 
+            transition: background 1.5s ease;
+        }
+        .bloom-active .stars-container { background: radial-gradient(circle at center, #2d1024 0%, #1a0b16 100%); }
         
-        .star { position: absolute; background: white; border-radius: 50%; opacity: 0; animation: twinkle var(--duration) infinite ease-in-out; }
-        .star { transition: all 1.5s ease, background 1.5s ease; }
-        .bloom-active .star { background: #ffb7c5; box-shadow: 0 0 15px #ffb7c5; transform: scale(2.5); }
+        .star { 
+            position: absolute; background: white; border-radius: 50%; 
+            opacity: 0; animation: twinkle var(--duration) infinite ease-in-out; 
+            transition: all 1.5s ease;
+        }
+        .bloom-active .star { background: #ffb7c5; transform: scale(1.5); box-shadow: 0 0 8px #ff6b88; }
 
         @keyframes twinkle { 
-            0%, 100% { opacity: 0.2; transform: scale(1); } 
+            0%, 100% { opacity: 0.1; transform: scale(1); } 
             50% { opacity: 0.8; transform: scale(1.2); } 
         }
 
-        #chat-window { flex: 1; overflow-y: auto; padding: 1.5rem; display: flex; flex-direction: column; gap: 0.8rem; scroll-behavior: smooth; }
+        /* Interaction: Chaos Animation */
+        @keyframes chaos {
+            0% { transform: translate(0, 0) rotate(0deg); }
+            20% { transform: translate(-15px, 10px) rotate(-5deg); }
+            40% { transform: translate(15px, -15px) rotate(5deg); }
+            60% { transform: translate(-10px, -10px) rotate(-3deg); }
+            80% { transform: translate(10px, 15px) rotate(3deg); }
+            100% { transform: translate(0, 0) rotate(0deg); }
+        }
+        .chaos-active .bubble { animation: chaos 0.4s infinite ease-in-out; }
+
+        /* Interaction: Emoji Particles */
+        .particle { position: fixed; pointer-events: none; z-index: 1000; font-size: 2.5rem; animation: particle-up 3s ease-out forwards; }
+        @keyframes particle-up {
+            0% { transform: translateY(110vh) scale(0.5); opacity: 1; }
+            100% { transform: translateY(-20vh) translateX(var(--drift)) rotate(360deg) scale(1.5); opacity: 0; }
+        }
+
+        /* Layout & Scrolling */
+        #chat-window { 
+            flex: 1; overflow-y: auto; padding: 1.5rem; 
+            display: flex; flex-direction: column; gap: 1rem; 
+            scroll-behavior: smooth; 
+            mask-image: linear-gradient(to bottom, transparent, black 1%, black 99%, transparent);
+        }
+        
         ::-webkit-scrollbar { width: 4px; }
         ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 10px; }
 
-        .message-row { display: flex; width: 100%; animation: slideUp 0.4s cubic-bezier(0.16, 1, 0.3, 1); }
+        /* Message Styling */
+        .message-row { display: flex; width: 100%; animation: slideUp 0.4s cubic-bezier(0.16, 1, 0.3, 1) both; position: relative; }
         .message-row.me { justify-content: flex-end; }
         .message-row.them { justify-content: flex-start; }
 
+        @keyframes slideUp { 
+            from { opacity: 0; transform: translateY(10px) scale(0.99); } 
+            to { opacity: 1; transform: translateY(0) scale(1); } 
+        }
+
         .bubble {
-            max-width: 80%; padding: 0.7rem 1rem; border-radius: 1.25rem;
-            position: relative; backdrop-filter: blur(12px);
-            border: 1px solid rgba(255,255,255,0.08);
-            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+            max-width: 80%; padding: 0.8rem 1rem; border-radius: 1.25rem;
+            position: relative; backdrop-filter: blur(25px);
+            border: 1px solid var(--glass-border);
+            box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+            transition: transform 0.2s ease, border-color 0.2s ease;
         }
-        .me .bubble { background: rgba(255, 255, 255, 0.12); border-bottom-right-radius: 0.25rem; }
-        .them .bubble { background: rgba(255, 255, 255, 0.04); border-bottom-left-radius: 0.25rem; }
+        .bubble:hover { border-color: rgba(255,255,255,0.2); }
 
-        .bubble a { color: var(--accent); text-decoration: underline; text-underline-offset: 2px; }
-        .bubble a:hover { brightness: 120%; }
-
-        .name-grace { color: var(--grace); text-shadow: 0 0 10px rgba(255, 215, 0, 0.3); font-weight: 900; }
-        .name-derrick { color: var(--derrick); text-shadow: 0 0 10px rgba(96, 165, 250, 0.3); font-weight: 900; }
-
-        .presence-dot { width: 8px; height: 8px; border-radius: 50%; background: #333; transition: 0.3s; }
-        .presence-dot.online { background: #10b981; box-shadow: 0 0 12px #10b981; }
-        
-        .reaction-bar {
-            position: absolute; bottom: -32px; 
-            background: rgba(15, 20, 30, 0.95); border-radius: 20px;
-            padding: 6px 10px; display: flex; gap: 10px;
-            opacity: 0; pointer-events: none; transition: 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
-            z-index: 50; border: 1px solid rgba(255,255,255,0.1);
+        .me .bubble { 
+            background: linear-gradient(135deg, rgba(255,255,255,0.08), rgba(255,255,255,0.02)); 
+            border-bottom-right-radius: 4px;
         }
-        .bubble:hover .reaction-bar { opacity: 1; pointer-events: auto; transform: translateY(-4px); }
-        .me .reaction-bar { right: 0; }
-        .them .reaction-bar { left: 0; }
+        .them .bubble { 
+            background: linear-gradient(135deg, rgba(255,255,255,0.05), rgba(255,255,255,0.01)); 
+            border-bottom-left-radius: 4px;
+        }
 
-        @keyframes slideUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+        .bubble a { color: var(--accent); text-decoration: underline; font-weight: 500; }
 
-        .input-bar {
-            background: rgba(10, 15, 25, 0.7); backdrop-filter: blur(25px);
+        .name-grace { color: var(--grace); font-weight: 800; text-shadow: 0 0 10px rgba(255, 215, 0, 0.3); }
+        .name-derrick { color: var(--derrick); font-weight: 800; text-shadow: 0 0 10px rgba(96, 165, 250, 0.3); }
+
+        /* Status Indicators */
+        .presence-dot { width: 8px; height: 8px; border-radius: 50%; background: #333; position: relative; transition: 0.3s; }
+        .presence-dot.online { background: #10b981; box-shadow: 0 0 10px #10b981; }
+
+        /* Reaction Bar */
+        .reaction-menu {
+            position: absolute; bottom: -35px; background: rgba(0,0,0,0.8);
+            backdrop-filter: blur(10px); border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 20px; padding: 4px 8px; display: flex; gap: 6px;
+            opacity: 0; pointer-events: none; transition: 0.2s ease; z-index: 10;
+        }
+        .bubble:hover .reaction-menu { opacity: 1; pointer-events: auto; transform: translateY(-4px); }
+        .me .reaction-menu { right: 0; }
+        .them .reaction-menu { left: 0; }
+
+        /* Inputs */
+        .input-area {
+            background: rgba(10, 15, 20, 0.5); backdrop-filter: blur(30px);
             border-top: 1px solid rgba(255,255,255,0.05);
             padding: 1rem 1.5rem calc(1rem + env(safe-area-inset-bottom));
         }
 
+        .btn-icon { transition: all 0.2s ease; }
+        .btn-icon:active { transform: scale(0.9); }
+
         #image-overlay {
-            position: fixed; inset: 0; background: rgba(0,0,0,0.9);
-            display: none; align-items: center; justify-content: center; z-index: 200;
-            padding: 20px;
+            position: fixed; inset: 0; background: rgba(0,0,0,0.95);
+            display: none; align-items: center; justify-content: center; z-index: 1000;
+            padding: 20px; backdrop-filter: blur(10px);
         }
 
-        .timestamp { font-size: 9px; opacity: 0.4; margin-top: 4px; display: block; }
-        .is-typing-indicator { font-size: 10px; font-style: italic; color: var(--accent); }
+        .typing-label { font-size: 11px; font-weight: 600; color: var(--accent); text-transform: uppercase; letter-spacing: 0.05em; }
+
+        #scroll-bottom { position: fixed; right: 20px; bottom: 120px; opacity: 0; pointer-events: none; transition: 0.3s; }
+        #scroll-bottom.show { opacity: 1; pointer-events: auto; }
+
+        /* Modal Styles */
+        .modal {
+            position: fixed; inset: 0; background: rgba(0,0,0,0.85);
+            backdrop-filter: blur(15px); display: none; align-items: center; justify-content: center; z-index: 2000;
+        }
+        .modal-content {
+            background: #0d1117; border: 1px solid rgba(255,255,255,0.1);
+            padding: 2rem; border-radius: 2.5rem; width: 90%; max-width: 380px; text-align: center;
+        }
     </style>
 </head>
 <body>
     <div class="stars-container" id="stars"></div>
+
     <div id="image-overlay" onclick="this.style.display='none'">
-        <img id="overlay-img" src="" class="max-w-full max-h-full rounded-lg shadow-2xl">
+        <img id="overlay-img" src="" class="max-w-full max-h-full rounded-xl shadow-2xl">
     </div>
 
-    <!-- Auth View -->
-    <div id="auth-view" class="fixed inset-0 z-[100] flex items-center justify-center bg-[#090A0F] hidden">
-        <div class="max-w-xs w-full text-center">
-            <div class="text-6xl mb-4">✨</div>
-            <h1 class="text-3xl font-black mb-8 italic text-amber-200 tracking-tighter">STARBOARD</h1>
-            <input type="password" id="password" placeholder="ENTER CODENAME" 
-                onkeydown="if(event.key === 'Enter') handleLogin()"
-                class="w-full p-5 rounded-3xl border border-white/10 text-center outline-none focus:border-amber-400 mb-4 transition-all uppercase tracking-widest font-bold bg-white/5">
-            <button onclick="handleLogin()" class="w-full bg-amber-400 text-black p-5 rounded-3xl font-black uppercase tracking-widest hover:brightness-110 active:scale-95 transition-all">Enter Thread</button>
+    <!-- Interactions Modal -->
+    <div id="fx-modal" class="modal" onclick="this.style.display='none'">
+        <div class="modal-content" onclick="event.stopPropagation()">
+            <h2 class="text-xs font-black uppercase tracking-[0.3em] mb-8 opacity-40">Screen Effects</h2>
+            <div class="grid grid-cols-1 gap-4">
+                <button onclick="sendEffect('bloom')" class="p-5 rounded-2xl bg-pink-500/10 border border-pink-500/20 text-pink-400 font-bold hover:bg-pink-500/20 transition-all active:scale-95">Pulse Pink</button>
+                <button onclick="sendEffect('chaos')" class="p-5 rounded-2xl bg-amber-500/10 border border-amber-500/20 text-amber-400 font-bold hover:bg-amber-500/20 transition-all active:scale-95">Message Chaos</button>
+                <button onclick="sendEffect('hearts')" class="p-5 rounded-2xl bg-red-400/10 border border-red-400/20 text-red-300 font-bold hover:bg-red-400/20 transition-all active:scale-95">Shoot Hearts</button>
+                <button onclick="sendEffect('stars')" class="p-5 rounded-2xl bg-blue-400/10 border border-blue-400/20 text-blue-300 font-bold hover:bg-blue-400/20 transition-all active:scale-95">Shoot Stars</button>
+            </div>
+            <button onclick="document.getElementById('fx-modal').style.display='none'" class="mt-8 text-[10px] uppercase font-bold opacity-30 hover:opacity-100 transition-opacity">Close Menu</button>
         </div>
     </div>
 
-    <!-- Board View -->
+    <!-- Login View -->
+    <div id="auth-view" class="fixed inset-0 z-[500] flex items-center justify-center bg-[#05070a] hidden">
+        <div class="w-full max-w-sm px-10 text-center">
+            <div class="text-6xl mb-6">⭐</div>
+            <h1 class="text-3xl font-black mb-1 tracking-tight">STARBOARD</h1>
+            <p class="text-[11px] font-bold uppercase opacity-30 tracking-widest mb-10">Authorized Access Only</p>
+            
+            <input type="password" id="password" placeholder="Password" 
+                onkeydown="if(event.key === 'Enter') handleLogin()"
+                class="w-full p-5 rounded-2xl bg-white/5 border border-white/10 text-center outline-none focus:border-amber-400 mb-4 transition-all font-medium">
+            
+            <button onclick="handleLogin()" class="w-full bg-amber-400 text-black p-5 rounded-2xl font-bold hover:brightness-110 active:scale-95 transition-all shadow-lg shadow-amber-400/10">
+                Login
+            </button>
+        </div>
+    </div>
+
+    <!-- Main Chat View -->
     <div id="board-view" class="flex flex-col h-full hidden">
-        <header class="p-6 flex justify-between items-center z-10">
-            <div class="flex items-center gap-3">
-                <h1 class="text-xl font-black text-amber-200 tracking-tighter inline-block mr-2 cursor-pointer" onclick="location.reload()">STARBOARD</h1>
-                <button onclick="sendBloom()" class="text-[10px] bg-white/5 hover:bg-white/10 border border-white/10 px-3 py-1.5 rounded-full uppercase font-bold tracking-widest text-pink-300 transition-all active:scale-90 shadow-lg shadow-pink-500/10">🌸 Bloom</button>
+        <header class="pt-10 px-6 pb-6 flex justify-between items-center bg-gradient-to-b from-black/40 to-transparent">
+            <div>
+                <h1 class="text-xl font-black text-white cursor-pointer" onclick="location.reload()">Starboard</h1>
+                <div class="flex gap-4 mt-2">
+                    <div class="flex items-center gap-2">
+                        <span id="dot-Grace" class="presence-dot"></span>
+                        <span class="text-[10px] uppercase font-bold name-grace opacity-60">Grace</span>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <span id="dot-Derrick" class="presence-dot"></span>
+                        <span class="text-[10px] uppercase font-bold name-derrick opacity-60">Derrick</span>
+                    </div>
+                </div>
             </div>
-            <div class="flex gap-4 items-center">
-                <div class="flex items-center gap-2">
-                    <span id="dot-Grace" class="presence-dot"></span>
-                    <span class="text-[9px] font-black uppercase tracking-widest name-grace">Grace</span>
-                </div>
-                <div class="flex items-center gap-2">
-                    <span id="dot-Derrick" class="presence-dot"></span>
-                    <span class="text-[9px] font-black uppercase tracking-widest name-derrick">Derrick</span>
-                </div>
-                <button onclick="localStorage.removeItem('board_user'); location.reload();" class="ml-2 opacity-30 hover:opacity-100 transition-opacity">
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            
+            <div class="flex items-center gap-2">
+                <!-- Interaction Menu Trigger -->
+                <button onclick="document.getElementById('fx-modal').style.display='flex'" class="bg-amber-400/10 border border-amber-400/40 p-2.5 rounded-xl text-amber-400 hover:bg-amber-400/20 btn-icon">
+                    <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2L4.5 20.29l.71.71L12 18l6.79 3 .71-.71L12 2z"/></svg>
+                </button>
+
+                <button onclick="localStorage.removeItem('board_user'); location.reload();" class="p-2 opacity-30 hover:opacity-100 transition-opacity">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
                 </button>
             </div>
         </header>
 
         <div id="chat-window"></div>
 
-        <div id="typing-status" class="px-6 py-1 h-5 opacity-0 transition-opacity">
-            <span class="is-typing-indicator"></span>
+        <!-- Scroll to Bottom Button -->
+        <button id="scroll-bottom" onclick="document.getElementById('chat-window').scrollTop = document.getElementById('chat-window').scrollHeight" 
+            class="bg-amber-400 text-black p-3 rounded-full shadow-2xl active:scale-95 transition-all">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M19 14l-7 7-7-7m14-8l-7 7-7-7" stroke-width="3" stroke-linecap="round"/></svg>
+        </button>
+
+        <div id="typing-status" class="px-8 py-2 h-6 opacity-0 transition-opacity">
+            <span class="typing-label"></span>
         </div>
 
-        <div class="input-bar">
-            <div id="preview-panel" class="hidden mb-3 relative inline-block">
-                <img id="image-preview" src="" class="h-16 w-16 object-cover rounded-lg border border-white/20">
-                <button onclick="clearImage()" class="absolute -top-2 -right-2 bg-red-500 text-white rounded-full p-1 shadow-lg"><svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M6 18L18 6M6 6l12 12" stroke-width="3"/></svg></button>
+        <div class="input-area">
+            <div id="preview-panel" class="hidden pb-4 relative">
+                <img id="image-preview" src="" class="h-20 w-20 object-cover rounded-xl border border-white/20">
+                <button onclick="clearImage()" class="absolute -top-2 left-16 bg-red-500 rounded-full p-1 shadow-lg"><svg class="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M6 18L18 6M6 6l12 12" stroke-width="3"/></svg></button>
             </div>
+            
             <div class="flex items-center gap-3">
-                <label class="cursor-pointer group">
+                <label class="cursor-pointer btn-icon">
                     <input type="file" id="post-image" accept="image/*" class="hidden" onchange="previewFile()">
-                    <div class="bg-white/5 p-3 rounded-full border border-white/10 text-amber-400 group-hover:bg-white/10 transition-colors">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" /></svg>
+                    <div class="bg-white/5 p-3.5 rounded-xl border border-white/10 text-white/50 hover:text-white transition-colors">
+                        <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" /></svg>
                     </div>
                 </label>
                 <input type="text" id="post-content" 
-                    placeholder="Message..." 
+                    placeholder="Type a message..." 
                     oninput="handleTyping()"
                     onkeydown="if(event.key === 'Enter') createPost()"
-                    class="flex-1 bg-white/5 border border-white/10 rounded-2xl px-5 py-3 outline-none focus:border-amber-400/40 focus:bg-white/10 transition-all text-sm">
-                <button onclick="createPost()" class="bg-amber-400 text-black p-3 rounded-full font-bold active:scale-90 transition-all shadow-lg shadow-amber-400/20">
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 12h14M12 5l7 7-7 7"/></svg>
+                    class="flex-1 bg-white/5 border border-white/10 rounded-xl px-5 py-3.5 outline-none focus:border-amber-400/50 transition-all font-medium text-sm">
+                <button onclick="createPost()" class="bg-amber-400 text-black p-3.5 rounded-xl font-bold btn-icon shadow-lg shadow-amber-400/20">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 12h14M12 5l7 7-7 7"/></svg>
                 </button>
             </div>
         </div>
@@ -163,40 +266,26 @@
         const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJxaXlmZXd1ZW1wcWZ5bWVhcnJ3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njg0Mzg3MzksImV4cCI6MjA4NDAxNDczOX0.He0wDj2TIfOUb7pMCOO5FIIJC1zzmnuponKhh-1rtcM';
         const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-        let presenceChannel;
-        let typingTimeout;
-        let isAtBottom = true;
+        let presenceChannel, typingTimeout, isAtBottom = true;
 
         const ICONS = {
             DEFAULT: 'data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>⭐</text></svg>',
-            NEW_MSG: 'data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>✨</text></svg>'
+            NEW: 'data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>✨</text></svg>'
         };
 
-        function setFavicon(icon) {
-            document.getElementById('favicon').setAttribute('href', icon);
-        }
-
-        // Bloom Logic
-        function sendBloom() {
-            presenceChannel.send({ type: 'broadcast', event: 'bloom', payload: {} });
-            triggerBloomEffect();
-        }
-        function triggerBloomEffect() {
-            document.body.classList.add('bloom-active');
-            setTimeout(() => document.body.classList.remove('bloom-active'), 4000);
-        }
+        function setFavicon(icon) { document.getElementById('favicon').setAttribute('href', icon); }
 
         function handleLogin() {
             const pass = document.getElementById('password').value;
             const user = pass === 'star2026' ? "Grace" : (pass === 'Rich6696' ? "Derrick" : null);
             if (user) { localStorage.setItem('board_user', user); checkAuth(); }
-            else alert('Access Denied.');
+            else { alert('Access Denied'); document.getElementById('password').value = ''; }
         }
 
         function checkAuth() {
             const user = localStorage.getItem('board_user');
             if (user) {
-                document.getElementById('auth-view').classList.add('hidden');
+                document.getElementById('auth-view').style.display = 'none';
                 document.getElementById('board-view').classList.remove('hidden');
                 init();
             } else {
@@ -207,10 +296,9 @@
         async function init() {
             const user = localStorage.getItem('board_user');
             loadMessages();
-            
-            sb.channel('thread-changes').on('postgres_changes', { event: '*', table: 'posts' }, loadMessages).subscribe();
+            sb.channel('db-changes').on('postgres_changes', { event: '*', table: 'posts' }, loadMessages).subscribe();
 
-            presenceChannel = sb.channel('chat-room', { config: { presence: { key: user } } });
+            presenceChannel = sb.channel('presence-room');
             presenceChannel
                 .on('presence', { event: 'sync' }, () => {
                     const state = presenceChannel.presenceState();
@@ -219,30 +307,25 @@
                         if (dot) dot.classList.toggle('online', !!state[name]);
                     });
                 })
-                .on('broadcast', { event: 'typing' }, (payload) => {
-                    const { user: typingUser, isTyping } = payload.payload;
-                    if (typingUser === user) return;
+                .on('broadcast', { event: 'typing' }, (p) => {
+                    if (p.payload.user === user) return;
                     const status = document.getElementById('typing-status');
-                    status.querySelector('span').innerText = isTyping ? `${typingUser} is typing...` : '';
-                    status.style.opacity = isTyping ? '1' : '0';
+                    status.querySelector('span').innerText = p.payload.isTyping ? `${p.payload.user} is typing...` : '';
+                    status.style.opacity = p.payload.isTyping ? '1' : '0';
                 })
-                .on('broadcast', { event: 'bloom' }, () => {
-                    triggerBloomEffect();
-                })
-                .subscribe(async (status) => {
-                    if (status === 'SUBSCRIBED') await presenceChannel.track({ online_at: new Date().toISOString() });
+                .on('broadcast', { event: 'interaction' }, (p) => handleRemoteEffect(p.payload.type))
+                .on('broadcast', { event: 'bloom' }, () => triggerBloomLocal())
+                .subscribe(async (s) => {
+                    if (s === 'SUBSCRIBED') await presenceChannel.track({ user, online_at: new Date().toISOString() });
                 });
             
             document.getElementById('chat-window').addEventListener('scroll', (e) => {
-                const { scrollTop, scrollHeight, clientHeight } = e.target;
-                isAtBottom = scrollHeight - scrollTop - clientHeight < 100;
+                isAtBottom = e.target.scrollHeight - e.target.scrollTop - e.target.clientHeight < 100;
+                document.getElementById('scroll-bottom').classList.toggle('show', !isAtBottom);
             });
 
             document.addEventListener('visibilitychange', () => {
-                if (document.visibilityState === 'visible') {
-                    setFavicon(ICONS.DEFAULT);
-                    loadMessages(); // Mark all current messages as read
-                }
+                if (document.visibilityState === 'visible') { setFavicon(ICONS.DEFAULT); loadMessages(); }
             });
         }
 
@@ -254,80 +337,84 @@
             }, 2000);
         }
 
-        function formatTime(iso) {
-            const date = new Date(iso);
-            return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-        }
-
         function linkify(text) {
             const urlPattern = /(\b(https?|ftp|file):\/\/[-A-Z0-9+&@#\/%?=~_|!:,.;]*[-A-Z0-9+&@#\/%=~_|])/ig;
             return text.replace(urlPattern, '<a href="$1" target="_blank" rel="noopener noreferrer">$1</a>');
         }
 
+        function sendEffect(type) {
+            presenceChannel.send({ type: 'broadcast', event: 'interaction', payload: { type } });
+            handleRemoteEffect(type);
+            document.getElementById('fx-modal').style.display = 'none';
+        }
+
+        function handleRemoteEffect(type) {
+            if (type === 'bloom') {
+                triggerBloomLocal();
+            } else if (type === 'chaos') {
+                document.body.classList.add('chaos-active');
+                setTimeout(() => document.body.classList.remove('chaos-active'), 2000);
+            } else if (type === 'hearts' || type === 'stars') {
+                const char = type === 'hearts' ? '❤️' : '⭐';
+                for(let i=0; i<35; i++) {
+                    setTimeout(() => {
+                        const p = document.createElement('div');
+                        p.className = 'particle';
+                        p.innerText = char;
+                        p.style.left = Math.random() * 100 + 'vw';
+                        p.style.setProperty('--drift', (Math.random() * 300 - 150) + 'px');
+                        document.body.appendChild(p);
+                        setTimeout(() => p.remove(), 3000);
+                    }, i * 60);
+                }
+            }
+        }
+
         async function loadMessages() {
             const { data: messages } = await sb.from('posts').select('*').order('created_at', { ascending: true });
-            const chatWindow = document.getElementById('chat-window');
+            const win = document.getElementById('chat-window');
             const currentUser = localStorage.getItem('board_user');
             
-            chatWindow.innerHTML = messages.map(m => {
+            win.innerHTML = messages.map(m => {
                 const isMe = m.author === currentUser;
                 const authorClass = m.author === 'Grace' ? 'name-grace' : 'name-derrick';
                 const readBy = m.read_by || [];
                 const isRead = readBy.length > 1;
 
                 if (!isMe && !readBy.includes(currentUser)) {
-                    if (document.visibilityState === 'visible') {
-                        markAsRead(m.id, readBy);
-                    } else {
-                        setFavicon(ICONS.NEW_MSG);
-                    }
+                    if (document.visibilityState === 'visible') markRead(m.id, readBy);
+                    else setFavicon(ICONS.NEW);
                 }
 
                 return `
                 <div class="message-row ${isMe ? 'me' : 'them'}">
                     <div class="bubble">
-                        <div class="text-[8px] font-black uppercase tracking-tighter mb-1 select-none flex justify-between gap-4">
-                            <span class="${authorClass}">${m.author}</span>
-                            <span class="opacity-40">${formatTime(m.created_at)}</span>
+                        <div class="flex justify-between gap-4 mb-1 select-none">
+                            <span class="text-[9px] uppercase tracking-widest ${authorClass} cursor-pointer hover:underline" onclick="document.getElementById('post-content').value = '@${m.author} '; document.getElementById('post-content').focus()">${m.author}</span>
+                            <span class="text-[9px] opacity-30 font-bold">${new Date(m.created_at).toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'})}</span>
                         </div>
-                        ${m.content ? `<div class="text-[13px] leading-relaxed whitespace-pre-wrap">${linkify(m.content)}</div>` : ''}
-                        ${m.image_url ? `<img src="${m.image_url}" onclick="zoomImage(this.src)" class="mt-2 rounded-lg max-w-full cursor-zoom-in hover:brightness-110 transition-all">` : ''}
+                        ${m.content ? `<div class="text-[14px] leading-relaxed whitespace-pre-wrap font-medium">${linkify(m.content)}</div>` : ''}
+                        ${m.image_url ? `<img src="${m.image_url}" onclick="zoom('${m.image_url}')" class="mt-2 rounded-lg max-w-full border border-white/10 cursor-zoom-in">` : ''}
                         
-                        <div class="flex flex-wrap gap-1 mt-2">
-                            ${Object.entries(m.reactions || {}).map(([emoji, count]) => count > 0 ? `
-                                <button onclick="reactToMessage('${m.id}', '${emoji}')" class="bg-white/10 px-2 py-0.5 rounded-full text-[10px] hover:bg-white/20 transition-colors border border-white/5 active:scale-90">
-                                    ${emoji} ${count}
+                        <div class="flex flex-wrap gap-1 mt-2.5">
+                            ${Object.entries(m.reactions || {}).map(([emo, count]) => count > 0 ? `
+                                <button onclick="react('${m.id}', '${emo}')" class="bg-white/10 px-2.5 py-1 rounded-full text-[10px] border border-white/5 active:scale-90 transition-all font-bold">
+                                    ${emo} ${count}
                                 </button>` : '').join('')}
                         </div>
 
-                        <div class="flex justify-between items-center mt-1">
-                            <div class="read-receipt text-[8px] font-bold uppercase tracking-widest opacity-20">
-                                ${isMe ? (isRead ? 'Seen' : 'Delivered') : ''}
-                            </div>
-                        </div>
+                        ${isMe ? `<div class="text-[8px] font-black uppercase tracking-tighter opacity-20 mt-1 text-right">
+                            ${isRead ? 'Seen' : 'Delivered'}
+                        </div>` : ''}
 
-                        <div class="reaction-bar shadow-2xl">
-                            ${['❤️', '✨', '🔥', '😂', '💯', '🤔'].map(emoji => `
-                                <button onclick="reactToMessage('${m.id}', '${emoji}')" class="hover:scale-150 transition-transform active:scale-90">${emoji}</button>
-                            `).join('')}
+                        <div class="reaction-menu">
+                            ${['❤️', '✨', '🔥', '😂', '💯', '🤔'].map(e => `<button onclick="react('${m.id}', '${e}')" class="hover:scale-125 transition-transform">${e}</button>`).join('')}
                         </div>
                     </div>
                 </div>`;
             }).join('');
             
-            if (isAtBottom) chatWindow.scrollTop = chatWindow.scrollHeight;
-        }
-
-        function zoomImage(src) {
-            document.getElementById('overlay-img').src = src;
-            document.getElementById('image-overlay').style.display = 'flex';
-        }
-
-        async function markAsRead(id, currentReadBy) {
-            const user = localStorage.getItem('board_user');
-            if (user && !currentReadBy.includes(user)) {
-                await sb.from('posts').update({ read_by: [...currentReadBy, user] }).eq('id', id);
-            }
+            if (isAtBottom) win.scrollTop = win.scrollHeight;
         }
 
         async function createPost() {
@@ -341,32 +428,38 @@
             
             let image_url = null;
             if (file) {
-                const fileName = `chat/${Date.now()}-${file.name}`;
-                const { data } = await sb.storage.from('post-images').upload(fileName, file);
+                const path = `files/${Date.now()}-${file.name}`;
+                const { data } = await sb.storage.from('post-images').upload(path, file);
                 if (data) image_url = sb.storage.from('post-images').getPublicUrl(data.path).data.publicUrl;
                 clearImage();
             }
 
-            await sb.from('posts').insert([{ 
-                content, 
-                image_url, 
-                author: user, 
-                read_by: [user], 
-                reactions: {} 
-            }]);
+            await sb.from('posts').insert([{ content, image_url, author: user, read_by: [user], reactions: {} }]);
         }
 
-        async function reactToMessage(id, emoji) {
+        async function react(id, emoji) {
             const { data } = await sb.from('posts').select('reactions').eq('id', id).single();
             const r = { ...(data.reactions || {}) };
             r[emoji] = (r[emoji] || 0) + 1;
             await sb.from('posts').update({ reactions: r }).eq('id', id);
         }
 
+        async function markRead(id, current) {
+            const user = localStorage.getItem('board_user');
+            if (user && !current.includes(user)) {
+                await sb.from('posts').update({ read_by: [...current, user] }).eq('id', id);
+            }
+        }
+
+        function triggerBloomLocal() {
+            document.body.classList.add('bloom-active');
+            setTimeout(() => document.body.classList.remove('bloom-active'), 4000);
+        }
+
         function previewFile() {
-            const file = document.getElementById('post-image').files[0];
-            if (file) {
-                document.getElementById('image-preview').src = URL.createObjectURL(file);
+            const f = document.getElementById('post-image').files[0];
+            if (f) {
+                document.getElementById('image-preview').src = URL.createObjectURL(f);
                 document.getElementById('preview-panel').classList.remove('hidden');
             }
         }
@@ -374,24 +467,24 @@
             document.getElementById('post-image').value = ''; 
             document.getElementById('preview-panel').classList.add('hidden'); 
         }
+        function zoom(src) { document.getElementById('overlay-img').src = src; document.getElementById('image-overlay').style.display = 'flex'; }
 
-        const starsContainer = document.getElementById('stars');
-        const starColors = ['#fff', '#ffd700', '#60a5fa', '#fff4f4'];
-        for (let i = 0; i < 200; i++) {
-            const star = document.createElement('div');
-            star.className = 'star';
-            const size = (Math.random() * 2 + 0.5) + 'px';
-            const color = starColors[Math.floor(Math.random() * starColors.length)];
-            star.style.cssText = `
-                width:${size};height:${size};
-                top:${Math.random()*100}%;left:${Math.random()*100}%;
-                background:${color};
-                --duration:${Math.random()*4+2}s;
-                animation-delay:${Math.random()*5}s;
-            `;
-            starsContainer.appendChild(star);
+        // Star Engine
+        const container = document.getElementById('stars');
+        function populateStars() {
+            for (let i = 0; i < 200; i++) {
+                const star = document.createElement('div');
+                star.className = 'star';
+                const size = (Math.random() * 2 + 0.5) + 'px';
+                star.style.width = size; star.style.height = size;
+                star.style.top = Math.random() * 100 + '%';
+                star.style.left = Math.random() * 100 + '%';
+                star.style.setProperty('--duration', (Math.random() * 3 + 2) + 's');
+                star.style.animationDelay = Math.random() * 5 + 's';
+                container.appendChild(star);
+            }
         }
-
+        populateStars();
         checkAuth();
     </script>
 </body>
