@@ -88,10 +88,11 @@
         .status-typing-em { animation: status-rotate 3s infinite linear; display: inline-block; }
         .status-idle-em { animation: status-fade 4s infinite ease-in-out; display: inline-block; }
 
-        .stardust { position: fixed; pointer-events: none; width: 4px; height: 4px; border-radius: 50%; z-index: 5; animation: stardust-fade 2s ease-out forwards; }
+        /* MODIFIED SOLID STYLES FOR TRAIL - LONGER, THICKER, TIGHTER */
+        .stardust { position: fixed; pointer-events: none; width: 6px; height: 6px; border-radius: 50%; z-index: 5; animation: stardust-fade 2s linear forwards; }
         @keyframes stardust-fade { 
-            0% { transform: scale(1); opacity: 1; filter: blur(0); } 
-            100% { transform: scale(3) translateY(20px); opacity: 0; filter: blur(4px); } 
+            0% { opacity: 1; transform: scale(1); } 
+            100% { opacity: 0; transform: scale(0.8); } 
         }
 
         #chat-window { 
@@ -255,6 +256,9 @@
         .ink-hidden:hover { opacity: 1 !important; text-shadow: 0 0 10px white; }
         #constellation-canvas { position: fixed; inset: 0; pointer-events: none; z-index: 5; }
         #help-guide { position: fixed; inset: 0; z-index: 9999; background: rgba(0,0,0,0.95); backdrop-filter: blur(20px); display: none; align-items: center; justify-content: center; padding: 40px; }
+        
+        /* SPECIFIC INK BUTTON TOGGLE STYLE */
+        .ink-active-btn { border-color: var(--accent) !important; color: var(--accent) !important; box-shadow: 0 0 15px rgba(251, 191, 36, 0.3); background: rgba(251, 191, 36, 0.1) !important; }
     </style>
 </head>
 <body>
@@ -270,7 +274,7 @@
                 <p><b class="text-amber-400">6. Milky Way:</b> A slow-rotating galactic backdrop that moves over hours.</p>
                 <p><b class="text-amber-400">9. Stardust Footprints:</b> Clicks on the background leave glowing pulses that last 10 seconds.</p>
                 <p><b class="text-amber-400">12. Telepathy:</b> See what the other person is typing in real-time in the header.</p>
-                <p><b class="text-amber-400">34. Invisible Ink:</b> Start a message with <code>[INK]</code> to hide it. Hover cursor to see.</p>
+                <p><b class="text-amber-400">34. Invisible Ink:</b> Use the dedicated [INK] button to hide your message content. Hover cursor on sent bubbles to see.</p>
                 <hr class="opacity-10">
                 <p><b class="text-purple-400">FX Menu:</b> Access 35+ cinematic animations via the triangle icon.</p>
                 <p><b class="text-purple-400">Solar Flare:</b> Click the "Clicks" button rapidly together to trigger a deep red theme.</p>
@@ -435,6 +439,10 @@
                         <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" /></svg>
                     </div>
                 </label>
+                <!-- NEW INK TOGGLE BUTTON -->
+                <button id="ink-toggle-btn" onclick="toggleInkMode()" class="bg-white/5 p-3.5 rounded-xl border border-white/10 text-white/50 hover:text-white transition-all btn-icon">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" /></svg>
+                </button>
                 <input type="text" id="post-content" 
                     placeholder="Type a message..." 
                     oninput="handleTyping(); syncTelepathy(this.value)"
@@ -459,6 +467,9 @@
         let gravityPoint = null; // IDEA 1
         let flareIntensity = 0; // IDEA 2
         let orbitTime = 0; // IDEA 4
+
+        // NEW PRIVATE STATE
+        let inkModeActive = false;
 
         const ICONS = {
             DEFAULT: 'data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>⭐</text></svg>',
@@ -672,15 +683,15 @@
 
         function setNebulaColor(c) { nebulaColor = c; nebulaCtx.beginPath(); }
 
+        /* SOLID STARDUST ENGINE - Glow removed, Blur removed, Thicker & Longer */
         function createStardust(x, y, color) {
             const p = document.createElement('div');
             p.className = 'stardust';
             p.style.left = x + 'px';
             p.style.top = y + 'px';
-            p.background = color;
-            p.style.boxShadow = `0 0 8px ${color}`;
+            p.style.background = color; // Solid Color
             document.body.appendChild(p);
-            setTimeout(() => p.remove(), 2000);
+            setTimeout(() => p.remove(), 2000); // Trail life extended
         }
 
         // IDEA 1: Gravity Well Engine
@@ -935,7 +946,9 @@
                 if (oldest) await sb.from('posts').delete().eq('id', oldest.id);
             }
 
-            const content = ct.value;
+            // MODIFIED FOR INK BUTTON LOGIC
+            let content = ct.value;
+            if (inkModeActive && content) content = "[INK] " + content;
             ct.value = ''; 
             
             let image_url = null;
@@ -947,6 +960,9 @@
             }
 
             await sb.from('posts').insert([{ content, image_url, author: user, read_by: [user], reactions: {} }]);
+            
+            // AUTO RESET MODE AFTER SEND
+            if (inkModeActive) toggleInkMode();
         }
 
         async function react(id, emoji, event) {
@@ -1022,7 +1038,13 @@
             const f = document.createElement('div'); f.className = 'footprint'; f.style.left = x + 'px'; f.style.top = y + 'px';
             document.body.appendChild(f); setTimeout(() => f.remove(), 10000);
         }
-        function syncTelepathy(text) { presenceChannel.send({ type: 'broadcast', event: 't-pathy', payload: { text, user: localStorage.getItem('board_user') } }); }
+
+        // MODIFIED SYNC TELEPATHY TO HONOR INK MODE
+        function syncTelepathy(text) { 
+            const payload = inkModeActive ? "Writing in secret ink..." : text;
+            presenceChannel.send({ type: 'broadcast', event: 't-pathy', payload: { text: payload, user: localStorage.getItem('board_user') } }); 
+        }
+
         function renderTelepath(text, user) {
             const view = document.getElementById('telepathy-view');
             view.innerText = text ? user + ": " + text : "";
@@ -1041,6 +1063,15 @@
                 ctx.stroke();
             }
             requestAnimationFrame(updateConstellations);
+        }
+
+        // FEATURE: NEW TOGGLE FUNCTION FOR INK MODE
+        function toggleInkMode() {
+            inkModeActive = !inkModeActive;
+            const btn = document.getElementById('ink-toggle-btn');
+            btn.classList.toggle('ink-active-btn', inkModeActive);
+            // Re-sync telepathy immediately to show/hide text
+            syncTelepathy(document.getElementById('post-content').value);
         }
     </script>
 </body>
