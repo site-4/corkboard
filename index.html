@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Starboard Chat</title>
+    <title>Starboard</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
@@ -23,14 +23,10 @@
             background: var(--space-bg);
             color: #fff; height: 100dvh; display: flex; flex-direction: column; overflow: hidden;
             -webkit-font-smoothing: antialiased;
-            /* Added logic for persistence */
             transition: background 1.5s cubic-bezier(0.4, 0, 0.2, 1);
         }
 
-        /* Original Bloom Effect */
         body.bloom-active { background: #1a0b16; }
-
-        /* New: Visual Interactions */
         body.lava-active { background: #220a05; }
         body.dizzy-active { animation: dizzy 2s ease-in-out infinite; }
         .ghost-active .bubble { opacity: 0.15; filter: blur(4px); transform: scale(0.95); }
@@ -55,7 +51,6 @@
             will-change: transform;
         }
         .bloom-active .star { background: #ffb7c5; transform: scale(1.5); box-shadow: 0 0 8px #ff6b88; }
-        /* Lava Star override */
         .lava-active .star { background: #ff7b00; box-shadow: 0 0 10px #ff4800; }
 
         @keyframes twinkle { 
@@ -63,7 +58,6 @@
             50% { opacity: 0.8; } 
         }
 
-        /* Interaction: Chaos Animation */
         @keyframes chaos {
             0% { transform: translate(0, 0) rotate(0deg); }
             20% { transform: translate(-15px, 10px) rotate(-5deg); }
@@ -74,14 +68,12 @@
         }
         .chaos-active .bubble { animation: chaos 0.4s infinite ease-in-out; }
 
-        /* Interaction: Emoji Particles */
         .particle { position: fixed; pointer-events: none; z-index: 1000; font-size: 2.5rem; animation: particle-up 3s ease-out forwards; }
         @keyframes particle-up {
             0% { transform: translateY(110vh) scale(0.5); opacity: 1; }
             100% { transform: translateY(-20vh) translateX(var(--drift)) rotate(360deg) scale(1.5); opacity: 0; }
         }
 
-        /* Feature 5: Dynamic Status Animations */
         @keyframes status-pulse { 0%, 100% { transform: scale(1); opacity: 1; } 50% { transform: scale(1.3); opacity: 0.7; } }
         @keyframes status-rotate { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
         @keyframes status-fade { 0%, 100% { opacity: 0.3; } 50% { opacity: 0.8; } }
@@ -89,14 +81,12 @@
         .status-typing-em { animation: status-rotate 3s infinite linear; display: inline-block; }
         .status-idle-em { animation: status-fade 4s infinite ease-in-out; display: inline-block; }
 
-        /* Stardust Trail Styles */
         .stardust { position: fixed; pointer-events: none; width: 4px; height: 4px; border-radius: 50%; z-index: 5; animation: stardust-fade 2s ease-out forwards; }
         @keyframes stardust-fade { 
             0% { transform: scale(1); opacity: 1; filter: blur(0); } 
             100% { transform: scale(3) translateY(20px); opacity: 0; filter: blur(4px); } 
         }
 
-        /* Layout & Scrolling */
         #chat-window { 
             flex: 1; overflow-y: auto; padding: 1.5rem; 
             display: flex; flex-direction: column; gap: 1rem; 
@@ -107,7 +97,6 @@
         ::-webkit-scrollbar { width: 4px; }
         ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 10px; }
 
-        /* Message Styling */
         .message-row { display: flex; width: 100%; animation: slideUp 0.4s cubic-bezier(0.16, 1, 0.3, 1) both; position: relative; }
         .message-row.me { justify-content: flex-end; }
         .message-row.them { justify-content: flex-start; }
@@ -140,16 +129,25 @@
         .name-grace { color: var(--grace); font-weight: 800; text-shadow: 0 0 10px rgba(255, 215, 0, 0.3); }
         .name-derrick { color: var(--derrick); font-weight: 800; text-shadow: 0 0 10px rgba(96, 165, 250, 0.3); }
 
-        /* Status Indicators */
         .presence-dot { width: 8px; height: 8px; border-radius: 50%; background: #333; position: relative; transition: 0.3s; }
         .presence-dot.online { background: #10b981; box-shadow: 0 0 10px #10b981; }
 
-        /* Feature 2: Shared Nebula Overlay */
-        #nebula-canvas { position: fixed; inset: 0; z-index: 50; cursor: crosshair; pointer-events: none; opacity: 0; transition: opacity 0.3s; }
-        #nebula-canvas.active { pointer-events: auto; opacity: 1; }
+        /* MODIFIED NEBULA STYLES */
+        #nebula-canvas { 
+            position: fixed; 
+            inset: 0; 
+            z-index: 50; 
+            cursor: crosshair; 
+            pointer-events: none; 
+            opacity: 1; /* Always visible to see remote drawings */
+            transition: background 0.3s;
+        }
+        #nebula-canvas.active { 
+            pointer-events: auto; 
+            background: rgba(0,0,0,0.1); /* Subtle visual hint you are in drawing mode */
+        }
         .nebula-tools { position: fixed; bottom: 120px; left: 50%; transform: translateX(-50%); display: none; gap: 10px; z-index: 60; background: rgba(0,0,0,0.8); padding: 10px; border-radius: 20px; border: 1px solid var(--glass-border); }
 
-        /* Reaction Bar */
         .reaction-menu {
             position: absolute; bottom: -35px; background: rgba(0,0,0,0.8);
             backdrop-filter: blur(10px); border: 1px solid rgba(255,255,255,0.1);
@@ -160,7 +158,6 @@
         .me .reaction-menu { right: 0; }
         .them .reaction-menu { left: 0; }
 
-        /* Inputs */
         .input-area {
             background: rgba(10, 15, 20, 0.5); backdrop-filter: blur(30px);
             border-top: 1px solid rgba(255,255,255,0.05);
@@ -177,12 +174,11 @@
         }
 
         .typing-label { font-size: 11px; font-weight: 600; color: var(--accent); text-transform: uppercase; letter-spacing: 0.05em; }
-        #typing-status { transform: translateY(-8px); } /* NEW: Move typing words slightly up */
+        #typing-status { transform: translateY(-8px); }
 
         #scroll-bottom { position: fixed; right: 20px; bottom: 120px; opacity: 0; pointer-events: none; transition: 0.3s; }
         #scroll-bottom.show { opacity: 1; pointer-events: auto; }
 
-        /* Modal Styles */
         .modal {
             position: fixed; inset: 0; background: rgba(0,0,0,0.85);
             backdrop-filter: blur(15px); display: none; align-items: center; justify-content: center; z-index: 2000;
@@ -201,6 +197,7 @@
         <button onclick="setNebulaColor('#fbbf24')" class="w-8 h-8 rounded-full bg-amber-400 border-2 border-white/20"></button>
         <button onclick="setNebulaColor('#60a5fa')" class="w-8 h-8 rounded-full bg-blue-400 border-2 border-white/20"></button>
         <button onclick="setNebulaColor('#f472b6')" class="w-8 h-8 rounded-full bg-pink-400 border-2 border-white/20"></button>
+        <div class="w-[1px] h-8 bg-white/10 mx-1"></div>
         <button onclick="clearNebula()" class="px-3 py-1 bg-white/10 hover:bg-white/20 rounded-lg text-[10px] font-bold uppercase tracking-wider">Clear</button>
         <button onclick="toggleNebula(false)" class="px-3 py-1 bg-red-500/20 hover:bg-red-500/40 rounded-lg text-[10px] font-bold uppercase tracking-wider">Exit</button>
     </div>
@@ -209,7 +206,6 @@
         <img id="overlay-img" src="" class="max-w-full max-h-full rounded-xl shadow-2xl">
     </div>
 
-    <!-- Enhanced Interactions Modal -->
     <div id="fx-modal" class="modal" onclick="this.style.display='none'">
         <div class="modal-content" onclick="event.stopPropagation()">
             <h2 class="text-xs font-black uppercase tracking-[0.3em] mb-6 opacity-40">Screen Actions</h2>
@@ -264,18 +260,14 @@
             </div>
             
             <div class="flex items-center gap-2">
-
-                <!-- Shared Nebula Trigger -->
                 <button onclick="toggleNebula(true)" class="bg-blue-400/10 border border-blue-400/40 p-2.5 rounded-xl text-blue-400 hover:bg-blue-400/20 btn-icon">
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"/></svg>
                 </button>
 
-                <!-- Interaction Menu Trigger -->
                 <button onclick="document.getElementById('fx-modal').style.display='flex'" class="bg-amber-400/10 border border-amber-400/40 p-2.5 rounded-xl text-amber-400 hover:bg-amber-400/20 btn-icon">
                     <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2L4.5 20.29l.71.71L12 18l6.79 3 .71-.71L12 2z"/></svg>
                 </button>
 
-                <!-- NEW: Global Clicker Button -->
                 <button id="global-click-btn" onclick="handleGlobalClick()" class="bg-purple-400/10 border border-purple-400/40 px-3 py-2.5 rounded-xl text-purple-400 hover:bg-purple-400/20 btn-icon flex flex-col items-center justify-center min-w-[60px]">
                     <span id="click-count" class="text-[10px] font-black leading-none mb-1">...</span>
                     <span id="last-clicker" class="text-[7px] uppercase font-bold opacity-60 leading-none">Clicks</span>
@@ -289,7 +281,6 @@
 
         <div id="chat-window"></div>
 
-        <!-- Scroll to Bottom Button -->
         <button id="scroll-bottom" onclick="document.getElementById('chat-window').scrollTop = document.getElementById('chat-window').scrollHeight" 
             class="bg-amber-400 text-black p-3 rounded-full shadow-2xl active:scale-95 transition-all">
             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M19 14l-7 7-7-7m14-8l-7 7-7-7" stroke-width="3" stroke-linecap="round"/></svg>
@@ -332,10 +323,8 @@
         let presenceChannel, typingTimeout, isAtBottom = true;
         let nebulaCtx, nebulaActive = false, isDrawing = false, nebulaColor = '#fbbf24';
         let starsData = [], mousePos = { x: -1000, y: -1000 };
-        let trailsActive = true; 
-        let lastTrailTime = 0; 
+        let trailsActive = true, lastTrailTime = 0; 
 
-        // Bug Fix: Expanded ICONS to include Universal Rose
         const ICONS = {
             DEFAULT: 'data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>⭐</text></svg>',
             NEW: 'data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>✨</text></svg>',
@@ -369,7 +358,6 @@
             initNebula();
             sb.channel('db-changes').on('postgres_changes', { event: '*', table: 'posts' }, loadMessages).subscribe();
 
-            /* NEW: Global Clicker Real-time Sync */
             const syncClicks = async () => {
                 const { data } = await sb.from('click_stats').select('*').eq('id', 1).single();
                 if (data) updateClickUI(data.total_clicks, data.last_clicked_by);
@@ -379,7 +367,6 @@
                 updateClickUI(p.new.total_clicks, p.new.last_clicked_by);
             }).subscribe();
 
-            /* FIXED Presence Configuration for accurate Online Indicators */
             presenceChannel = sb.channel('presence-room', { config: { presence: { key: user } } });
             presenceChannel
                 .on('presence', { event: 'sync' }, () => {
@@ -389,7 +376,6 @@
                         const statusEl = document.getElementById(`status-${name}`);
                         if (dot) dot.classList.toggle('online', !!state[name]);
                         
-                        // Feature 5: Update Dynamic Emotes based on presence state
                         if (state[name]) {
                             const p = state[name][0];
                             let emoji = '☀️'; let cls = 'status-active-em';
@@ -401,11 +387,6 @@
                         }
                     });
                     
-                    // Fixed & Expanded Rose Favicon logic for both users
-                    if (state['Grace'] && document.visibilityState === 'hidden') {
-                        setFavicon(ICONS.GRACE);
-                    }
-                    /* NEW UNIVERSAL LOGIC Added below without deleting original lines */
                     const currentMe = localStorage.getItem('board_user');
                     const currentThem = currentMe === 'Grace' ? 'Derrick' : 'Grace';
                     if (state[currentThem] && document.visibilityState === 'hidden') {
@@ -417,10 +398,6 @@
                     const status = document.getElementById('typing-status');
                     status.querySelector('span').innerText = p.payload.isTyping ? `${p.payload.user} is typing...` : '';
                     status.style.opacity = p.payload.isTyping ? '1' : '0';
-                    // Bug Fix: Only track if necessary to prevent network flood recursion
-                    if (p.payload.user !== user) {
-                         // presenceChannel.track({ user, online_at: new Date().toISOString(), isTyping: p.payload.isTyping, isIdle: document.visibilityState === 'hidden' });
-                    }
                 })
                 .on('broadcast', { event: 'interaction' }, (p) => handleRemoteEffect(p.payload.type))
                 .on('broadcast', { event: 'bloom' }, () => triggerBloomLocal())
@@ -438,7 +415,6 @@
 
             document.addEventListener('visibilitychange', () => {
                 const isIdle = document.visibilityState === 'hidden';
-                // Bug Fix: Don't revert to DEFAULT if there are pending NEW messages
                 if (!isIdle) { 
                     checkUnreadAndResetIcon();
                     loadMessages(); 
@@ -456,20 +432,9 @@
                 }
             });
 
-            window.addEventListener('touchmove', (e) => {
-                if (trailsActive && !nebulaActive && Date.now() - lastTrailTime > 10) {
-                    const t = e.touches[0];
-                    const color = user === 'Grace' ? '#FFD700' : '#60a5fa';
-                    createStardust(t.clientX, t.clientY, color);
-                    presenceChannel.send({ type: 'broadcast', event: 'stardust', payload: { x: t.clientX, y: t.clientY, color } });
-                    lastTrailTime = Date.now();
-                }
-            });
-
             requestAnimationFrame(animateStars);
         }
 
-        /* NEW: Global Clicker Logic */
         async function handleGlobalClick() {
             const user = localStorage.getItem('board_user');
             const { data: current } = await sb.from('click_stats').select('total_clicks').eq('id', 1).single();
@@ -484,7 +449,7 @@
             document.getElementById('last-clicker').innerText = name === 'None' ? 'Clicks' : name;
         }
 
-        /* Feature 2: Nebula Drawing Engine */
+        /* MODIFIED NEBULA ENGINE */
         function initNebula() {
             const canvas = document.getElementById('nebula-canvas');
             nebulaCtx = canvas.getContext('2d');
@@ -493,8 +458,9 @@
 
             const draw = (e) => {
                 if (!isDrawing || !nebulaActive) return;
-                const x = e.clientX || e.touches[0].clientX;
-                const y = e.clientY || e.touches[0].clientY;
+                const x = e.clientX || (e.touches ? e.touches[0].clientX : null);
+                const y = e.clientY || (e.touches ? e.touches[0].clientY : null);
+                if (x === null) return;
                 
                 nebulaCtx.lineWidth = 4;
                 nebulaCtx.lineCap = 'round';
@@ -511,12 +477,13 @@
             };
 
             canvas.addEventListener('mousedown', (e) => { 
+                if (!nebulaActive) return;
                 isDrawing = true; 
                 nebulaCtx.beginPath(); 
                 presenceChannel.send({ type: 'broadcast', event: 'nebulae-draw', payload: { x: e.clientX, y: e.clientY, color: nebulaColor, start: true } });
             });
             canvas.addEventListener('mousemove', draw);
-            canvas.addEventListener('mouseup', () => { isDrawing = false; nebulaCtx.beginPath(); });
+            window.addEventListener('mouseup', () => { isDrawing = false; });
         }
 
         function toggleNebula(show) {
@@ -525,15 +492,9 @@
             document.getElementById('nebula-tools').style.display = show ? 'flex' : 'none';
         }
 
-        function setNebulaColor(c) { nebulaColor = c; nebulaCtx.beginPath(); }
-        
-        function clearNebula() { 
-            nebulaCtx.clearRect(0, 0, nebulaCtx.canvas.width, nebulaCtx.canvas.height);
-            presenceChannel.send({ type: 'broadcast', event: 'nebulae-clear' });
-        }
-
         function remoteDraw({ x, y, color, start }) {
-            if (!nebulaActive) toggleNebula(true); // NEW: Automatically show drawing to other user
+            // REMOVED: if (!nebulaActive) toggleNebula(true); 
+            // This ensures it doesn't block the other user
             if (start) { nebulaCtx.beginPath(); return; }
             nebulaCtx.lineWidth = 4;
             nebulaCtx.lineCap = 'round';
@@ -546,9 +507,12 @@
             nebulaCtx.moveTo(x, y);
         }
 
-        function toggleTrails() {
-            // Function preserved but logic removed to keep trails permanent
+        function clearNebula() { 
+            nebulaCtx.clearRect(0, 0, nebulaCtx.canvas.width, nebulaCtx.canvas.height);
+            presenceChannel.send({ type: 'broadcast', event: 'nebulae-clear' });
         }
+
+        function setNebulaColor(c) { nebulaColor = c; nebulaCtx.beginPath(); }
 
         function createStardust(x, y, color) {
             const p = document.createElement('div');
@@ -561,32 +525,29 @@
             setTimeout(() => p.remove(), 2000);
         }
 
-        /* Feature 3: Interactive Gravity Logic */
         function animateStars() {
-            // Feature 3 is disabled when Feature 2 (Nebula) is in use
-            if (!nebulaActive) {
-                starsData.forEach(s => {
-                    const dx = mousePos.x - s.x;
-                    const dy = mousePos.y - s.y;
-                    const dist = Math.sqrt(dx*dx + dy*dy);
-                    
-                    if (dist < 250) {
-                        const force = (250 - dist) / 250;
-                        s.vx -= dx * force * 0.03;
-                        s.vy -= dy * force * 0.03;
-                    }
+            // Friction and gravity logic
+            starsData.forEach(s => {
+                const dx = mousePos.x - s.x;
+                const dy = mousePos.y - s.y;
+                const dist = Math.sqrt(dx*dx + dy*dy);
+                
+                if (dist < 250) {
+                    const force = (250 - dist) / 250;
+                    s.vx -= dx * force * 0.03;
+                    s.vy -= dy * force * 0.03;
+                }
 
-                    s.x += s.vx; s.y += s.vy;
-                    s.vx *= 0.95; s.vy *= 0.95; // Friction
+                s.x += s.vx; s.y += s.vy;
+                s.vx *= 0.95; s.vy *= 0.95;
 
-                    if (s.x < 0) s.x = window.innerWidth;
-                    if (s.x > window.innerWidth) s.x = 0;
-                    if (s.y < 0) s.y = window.innerHeight;
-                    if (s.y > window.innerHeight) s.y = 0;
+                if (s.x < 0) s.x = window.innerWidth;
+                if (s.x > window.innerWidth) s.x = 0;
+                if (s.y < 0) s.y = window.innerHeight;
+                if (s.y > window.innerHeight) s.y = 0;
 
-                    s.el.style.transform = `translate3d(${s.x - s.origX}px, ${s.y - s.origY}px, 0)`;
-                });
-            }
+                s.el.style.transform = `translate3d(${s.x - s.origX}px, ${s.y - s.origY}px, 0)`;
+            });
             requestAnimationFrame(animateStars);
         }
 
@@ -610,10 +571,8 @@
         }
 
         function handleRemoteEffect(type) {
-            /* Handlers for new interactions */
-            if (type === 'bloom') {
-                triggerBloomLocal();
-            } else if (type === 'lava') {
+            if (type === 'bloom') triggerBloomLocal();
+            else if (type === 'lava') {
                 document.body.classList.add('lava-active');
                 setTimeout(() => document.body.classList.remove('lava-active'), 4000);
             } else if (type === 'chaos') {
@@ -641,7 +600,6 @@
             }
         }
 
-        // Bug Fix: Smart icon reset that respects unread messages
         async function checkUnreadAndResetIcon() {
             const user = localStorage.getItem('board_user');
             const { data } = await sb.from('posts').select('id, read_by').order('created_at', { ascending: false }).limit(10);
@@ -702,7 +660,6 @@
             const user = localStorage.getItem('board_user');
             if (!ct.value.trim() && !file) return;
 
-            /* Limit messages to 95 to stay within free plan storage */
             const { count } = await sb.from('posts').select('*', { count: 'exact', head: true });
             if (count >= 95) {
                 const { data: oldest } = await sb.from('posts').select('id').order('created_at', { ascending: true }).limit(1).single();
@@ -717,7 +674,6 @@
                 const path = `files/${Date.now()}-${file.name}`;
                 const { data } = await sb.storage.from('post-images').upload(path, file);
                 if (data) image_url = sb.storage.from('post-images').getPublicUrl(data.path).data.publicUrl;
-                // Bug Fix: Explicitly ensure UI clears regardless of promise state
                 clearImage();
             }
 
@@ -756,7 +712,6 @@
         }
         function zoom(src) { document.getElementById('overlay-img').src = src; document.getElementById('image-overlay').style.display = 'flex'; }
 
-        // Star Engine
         const container = document.getElementById('stars');
         function populateStars() {
             for (let i = 0; i < 200; i++) {
@@ -773,7 +728,6 @@
                 star.style.animationDelay = Math.random() * 5 + 's';
                 container.appendChild(star);
                 
-                // Track star data for Feature 3
                 starsData.push({
                     el: star,
                     x: (tx / 100) * window.innerWidth,
